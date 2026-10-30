@@ -1,0 +1,125 @@
+source_column,variable,description,stage1_role
+1,ID,Record ID,record identifier; excluded from predictors
+2,AGE,Age,admission-time predictor
+3,SEX,Gender,admission-time predictor
+4,INF_ANAM,Quantity of myocardial infarctions in the anamnesis,admission-time predictor
+5,STENOK_AN,Exertional angina pectoris in the anamnesis,admission-time predictor
+6,FK_STENOK,Functional class (FC) of angina pectoris in the last year,admission-time predictor
+7,IBS_POST,"Coronary heart disease (CHD) in recent weeks, days before admission to hospital",admission-time predictor
+8,IBS_NASL,Heredity on CHD,admission-time predictor
+9,GB,Presence of an essential hypertension,admission-time predictor
+10,SIM_GIPERT,Symptomatic hypertension,admission-time predictor
+11,DLIT_AG,Duration of arterial hypertension,admission-time predictor
+12,ZSN_A,Presence of chronic Heart failure (HF) in the anamnesis,admission-time predictor
+13,nr11,Observing of arrhythmia in the anamnesis,admission-time predictor
+14,nr01,Premature atrial contractions in the anamnesis,admission-time predictor
+15,nr02,Premature ventricular contractions in the anamnesis,admission-time predictor
+16,nr03,Paroxysms of atrial fibrillation in the anamnesis,admission-time predictor
+17,nr04,A persistent form of atrial fibrillation in the anamnesis,admission-time predictor
+18,nr07,Ventricular fibrillation in the anamnesis,admission-time predictor
+19,nr08,Ventricular paroxysmal tachycardia in the anamnesis,admission-time predictor
+20,np01,First-degree AV block in the anamnesis,admission-time predictor
+21,np04,Third-degree AV block in the anamnesis,admission-time predictor
+22,np05,LBBB (anterior branch) in the anamnesis,admission-time predictor
+23,np07,Incomplete LBBB in the anamnesis,admission-time predictor
+24,np08,Complete LBBB in the anamnesis,admission-time predictor
+25,np09,Incomplete RBBB in the anamnesis,admission-time predictor
+26,np10,Complete RBBB in the anamnesis,admission-time predictor
+27,endocr_01,Diabetes mellitus in the anamnesis,admission-time predictor
+28,endocr_02,Obesity in the anamnesis,admission-time predictor
+29,endocr_03,Thyrotoxicosis in the anamnesis,admission-time predictor
+30,zab_leg_01,Chronic bronchitis in the anamnesis,admission-time predictor
+31,zab_leg_02,Obstructive chronic bronchitis in the anamnesis,admission-time predictor
+32,zab_leg_03,Bronchial asthma in the anamnesis,admission-time predictor
+33,zab_leg_04,Chronic pneumonia in the anamnesis,admission-time predictor
+34,zab_leg_06,Pulmonary tuberculosis in the anamnesis,admission-time predictor
+35,S_AD_KBRIG,Systolic blood pressure according to Emergency Cardiology Team,admission-time predictor
+36,D_AD_KBRIG,Diastolic blood pressure according to Emergency Cardiology Team,admission-time predictor
+37,S_AD_ORIT,Systolic blood pressure according to intensive care unit,admission-time predictor
+38,D_AD_ORIT,Diastolic blood pressure according to intensive care unit,admission-time predictor
+39,O_L_POST,Pulmonary edema at the time of admission to intensive care unit,admission-time predictor
+40,K_SH_POST,Cardiogenic shock at the time of admission to intensive care unit,admission-time predictor
+41,MP_TP_POST,"Paroxysms of atrial fibrillation at the time of admission to intensive care unit, (or at a pre- hospital stage)",admission-time predictor
+42,SVT_POST,"Paroxysms of supraventricular tachycardia at the time of admission to intensive care unit, (or at a pre-hospital stage)",admission-time predictor
+43,GT_POST,"Paroxysms of ventricular tachycardia at the time of admission to intensive care unit, (or at a pre-hospital stage)",admission-time predictor
+44,FIB_G_POST,"Ventricular fibrillation at the time of admission to intensive care unit, (or at a pre-hospital stage)",admission-time predictor
+45,ant_im,Presence of an anterior myocardial infarction (left ventricular) (ECG changes in leads V1 – V4 ),admission-time predictor
+46,lat_im,"Presence of a lateral myocardial infarction (left ventricular) (ECG changes in leads V5 – V6 , I, AVL)",admission-time predictor
+47,inf_im,"Presence of an inferior myocardial infarction (left ventricular) (ECG changes in leads III, AVF, II).",admission-time predictor
+48,post_im,"Presence of a posterior myocardial infarction (left ventricular) (ECG changes in V7 – V9, reciprocity changes in leads V1 – V3)",admission-time predictor
+49,IM_PG_P,Presence of a right ventricular myocardial infarction,admission-time predictor
+50,ritm_ecg_p_01,ECG rhythm at the time of admission to hospital – sinus (with a heart rate 60-90),admission-time predictor
+51,ritm_ecg_p_02,ECG rhythm at the time of admission to hospital – atrial fibrillation,admission-time predictor
+52,ritm_ecg_p_04,ECG rhythm at the time of admission to hospital – atrial,admission-time predictor
+53,ritm_ecg_p_06,ECG rhythm at the time of admission to hospital – idioventricular,admission-time predictor
+54,ritm_ecg_p_07,ECG rhythm at the time of admission to hospital – sinus with a heart rate above 90 (tachycardia),admission-time predictor
+55,ritm_ecg_p_08,ECG rhythm at the time of admission to hospital – sinus with a heart rate below 60 (bradycardia),admission-time predictor
+56,n_r_ecg_p_01,Premature atrial contractions on ECG at the time of admission to hospital,admission-time predictor
+57,n_r_ecg_p_02,Frequent premature atrial contractions on ECG at the time of admission to hospital,admission-time predictor
+58,n_r_ecg_p_03,Premature ventricular contractions on ECG at the time of admission to hospital,admission-time predictor
+59,n_r_ecg_p_04,Frequent premature ventricular contractions on ECG at the time of admission to hospital,admission-time predictor
+60,n_r_ecg_p_05,Paroxysms of atrial fibrillation on ECG at the time of admission to hospital,admission-time predictor
+61,n_r_ecg_p_06,Persistent form of atrial fibrillation on ECG at the time of admission to hospital,admission-time predictor
+62,n_r_ecg_p_08,Paroxysms of supraventricular tachycardia on ECG at the time of admission to hospital,admission-time predictor
+63,n_r_ecg_p_09,Paroxysms of ventricular tachycardia on ECG at the time of admission to hospital,admission-time predictor
+64,n_r_ecg_p_10,Ventricular fibrillation on ECG at the time of admission to hospital,admission-time predictor
+65,n_p_ecg_p_01,Sinoatrial block on ECG at the time of admission to hospital,admission-time predictor
+66,n_p_ecg_p_03,First-degree AV block on ECG at the time of admission to hospital,admission-time predictor
+67,n_p_ecg_p_04,Type 1 Second-degree AV block (Mobitz I/Wenckebach) on ECG at the time of admission to hospital,admission-time predictor
+68,n_p_ecg_p_05,Type 2 Second-degree AV block (Mobitz II/Hay) on ECG at the time of admission to hospital,admission-time predictor
+69,n_p_ecg_p_06,Third-degree AV block on ECG at the time of admission to hospital,admission-time predictor
+70,n_p_ecg_p_07,LBBB (anterior branch) on ECG at the time of admission to hospital,admission-time predictor
+71,n_p_ecg_p_08,LBBB (posterior branch) on ECG at the time of admission to hospital,admission-time predictor
+72,n_p_ecg_p_09,Incomplete LBBB on ECG at the time of admission to hospital,admission-time predictor
+73,n_p_ecg_p_10,Complete LBBB on ECG at the time of admission to hospital,admission-time predictor
+74,n_p_ecg_p_11,Incomplete RBBB on ECG at the time of admission to hospital,admission-time predictor
+75,n_p_ecg_p_12,Complete RBBB on ECG at the time of admission to hospital,admission-time predictor
+76,fibr_ter_01,Fibrinolytic therapy by Сеliasum 750k IU,admission-time predictor
+77,fibr_ter_02,Fibrinolytic therapy by Сеliasum 1m IU,admission-time predictor
+78,fibr_ter_03,Fibrinolytic therapy by Сеliasum 3m IU,admission-time predictor
+79,fibr_ter_05,Fibrinolytic therapy by Streptase,admission-time predictor
+80,fibr_ter_06,Fibrinolytic therapy by Сеliasum 500k IU,admission-time predictor
+81,fibr_ter_07,Fibrinolytic therapy by Сеliasum 250k IU,admission-time predictor
+82,fibr_ter_08,Fibrinolytic therapy by Streptodecase 1.5m IU,admission-time predictor
+83,GIPO_K,Hypokalemia ( < 4 mmol/L),admission-time predictor
+84,K_BLOOD,Serum potassium content,admission-time predictor
+85,GIPER_Na,Increase of sodium in serum (more than 150 mmol/L),admission-time predictor
+86,Na_BLOOD,Serum sodium content,admission-time predictor
+87,ALT_BLOOD,Serum AlAT content,admission-time predictor
+88,AST_BLOOD,Serum AsAT content,admission-time predictor
+89,KFK_BLOOD,Serum CPK content,admission-time predictor
+90,L_BLOOD,White blood cell count (billions per liter),admission-time predictor
+91,ROE,ESR (Erythrocyte sedimentation rate),admission-time predictor
+92,TIME_B_S,Time elapsed from the beginning of the attack of CHD to the hospital,admission-time predictor
+93,R_AB_1_n,Relapse of the pain in the first hours of the hospital period,post-admission value; excluded for admission-time prediction
+94,R_AB_2_n,Relapse of the pain in the second day of the hospital period,post-admission value; excluded for admission-time prediction
+95,R_AB_3_n,Relapse of the pain in the third day of the hospital period,post-admission value; excluded for admission-time prediction
+96,NA_KB,Use of opioid drugs by the Emergency Cardiology Team,admission-time predictor
+97,NOT_NA_KB,Use of NSAIDs by the Emergency Cardiology Team,admission-time predictor
+98,LID_KB,Use of lidocaine by the Emergency Cardiology Team,admission-time predictor
+99,NITR_S,Use of liquid nitrates in the ICU,admission-time predictor
+100,NA_R_1_n,Use of opioid drugs in the ICU in the first hours of the hospital period,post-admission value; excluded for admission-time prediction
+101,NA_R_2_n,Use of opioid drugs in the ICU in the second day of the hospital period,post-admission value; excluded for admission-time prediction
+102,NA_R_3_n,Use of opioid drugs in the ICU in the third day of the hospital period,post-admission value; excluded for admission-time prediction
+103,NOT_NA_1_n,Use of NSAIDs in the ICU in the first hours of the hospital period,post-admission value; excluded for admission-time prediction
+104,NOT_NA_2_n,Use of NSAIDs in the ICU in the second day of the hospital period,post-admission value; excluded for admission-time prediction
+105,NOT_NA_3_n,Use of NSAIDs in the ICU in the third day of the hospital period,post-admission value; excluded for admission-time prediction
+106,LID_S_n,Use of lidocaine in the ICU,admission-time predictor
+107,B_BLOK_S_n,Use of beta-blockers in the ICU,admission-time predictor
+108,ANT_CA_S_n,Use of calcium channel blockers in the ICU,admission-time predictor
+109,GEPAR_S_n,Use of anticoagulants (heparin) in the ICU,admission-time predictor
+110,ASP_S_n,Use of acetylsalicylic acid in the ICU,admission-time predictor
+111,TIKL_S_n,Use of Ticlid in the ICU,admission-time predictor
+112,TRENT_S_n,Use of Trental in the ICU,admission-time predictor
+113,FIBR_PREDS,Atrial fibrillation,"outcome; stored in y, excluded from predictors"
+114,PREDS_TAH,Supraventricular tachycardia,"outcome; stored in y, excluded from predictors"
+115,JELUD_TAH,Ventricular tachycardia,"outcome; stored in y, excluded from predictors"
+116,FIBR_JELUD,Ventricular fibrillation,"outcome; stored in y, excluded from predictors"
+117,A_V_BLOK,Third-degree AV block,"outcome; stored in y, excluded from predictors"
+118,OTEK_LANC,Pulmonary edema,"outcome; stored in y, excluded from predictors"
+119,RAZRIV,Myocardial rupture,"outcome; stored in y, excluded from predictors"
+120,DRESSLER,Dressler syndrome,"outcome; stored in y, excluded from predictors"
+121,ZSN,Chronic heart failure,"outcome; stored in y, excluded from predictors"
+122,REC_IM,Relapse of the myocardial infarction,"outcome; stored in y, excluded from predictors"
+123,P_IM_STEN,Post-infarction angina,"outcome; stored in y, excluded from predictors"
+124,LET_IS,Lethal outcome (cause),"outcome; stored in y, excluded from predictors"

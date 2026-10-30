@@ -1,0 +1,103 @@
+feature,missing_count,missing_rate,description
+KFK_BLOOD,1356,0.9970588235294118,Serum CPK content
+IBS_NASL,1296,0.9529411764705882,Heredity on CHD
+D_AD_KBRIG,863,0.6345588235294117,Diastolic blood pressure according to Emergency Cardiology Team
+S_AD_KBRIG,863,0.6345588235294117,Systolic blood pressure according to Emergency Cardiology Team
+NOT_NA_KB,547,0.4022058823529412,Use of NSAIDs by the Emergency Cardiology Team
+LID_KB,539,0.3963235294117647,Use of lidocaine by the Emergency Cardiology Team
+NA_KB,520,0.38235294117647056,Use of opioid drugs by the Emergency Cardiology Team
+GIPER_Na,311,0.2286764705882353,Increase of sodium in serum (more than 150 mmol/L)
+Na_BLOOD,311,0.2286764705882353,Serum sodium content
+K_BLOOD,308,0.22647058823529412,Serum potassium content
+GIPO_K,306,0.225,Hypokalemia ( < 4 mmol/L)
+AST_BLOOD,230,0.16911764705882354,Serum AsAT content
+ALT_BLOOD,229,0.16838235294117648,Serum AlAT content
+D_AD_ORIT,220,0.16176470588235295,Diastolic blood pressure according to intensive care unit
+S_AD_ORIT,220,0.16176470588235295,Systolic blood pressure according to intensive care unit
+DLIT_AG,195,0.14338235294117646,Duration of arterial hypertension
+ROE,169,0.12426470588235294,ESR (Erythrocyte sedimentation rate)
+ritm_ecg_p_01,126,0.09264705882352942,ECG rhythm at the time of admission to hospital – sinus (with a heart rate 60-90)
+ritm_ecg_p_02,126,0.09264705882352942,ECG rhythm at the time of admission to hospital – atrial fibrillation
+ritm_ecg_p_04,126,0.09264705882352942,ECG rhythm at the time of admission to hospital – atrial
+ritm_ecg_p_06,126,0.09264705882352942,ECG rhythm at the time of admission to hospital – idioventricular
+ritm_ecg_p_07,126,0.09264705882352942,ECG rhythm at the time of admission to hospital – sinus with a heart rate above 90 (tachycardia)
+ritm_ecg_p_08,126,0.09264705882352942,ECG rhythm at the time of admission to hospital – sinus with a heart rate below 60 (bradycardia)
+L_BLOOD,103,0.07573529411764705,White blood cell count (billions per liter)
+TIME_B_S,100,0.07352941176470588,Time elapsed from the beginning of the attack of CHD to the hospital
+n_p_ecg_p_01,94,0.06911764705882353,Sinoatrial block on ECG at the time of admission to hospital
+n_p_ecg_p_03,94,0.06911764705882353,First-degree AV block on ECG at the time of admission to hospital
+n_p_ecg_p_04,94,0.06911764705882353,Type 1 Second-degree AV block (Mobitz I/Wenckebach) on ECG at the time of admission to hospital
+n_p_ecg_p_05,94,0.06911764705882353,Type 2 Second-degree AV block (Mobitz II/Hay) on ECG at the time of admission to hospital
+n_p_ecg_p_06,94,0.06911764705882353,Third-degree AV block on ECG at the time of admission to hospital
+n_p_ecg_p_07,94,0.06911764705882353,LBBB (anterior branch) on ECG at the time of admission to hospital
+n_p_ecg_p_08,94,0.06911764705882353,LBBB (posterior branch) on ECG at the time of admission to hospital
+n_p_ecg_p_09,94,0.06911764705882353,Incomplete LBBB on ECG at the time of admission to hospital
+n_p_ecg_p_10,94,0.06911764705882353,Complete LBBB on ECG at the time of admission to hospital
+n_p_ecg_p_11,94,0.06911764705882353,Incomplete RBBB on ECG at the time of admission to hospital
+n_p_ecg_p_12,94,0.06911764705882353,Complete RBBB on ECG at the time of admission to hospital
+n_r_ecg_p_01,94,0.06911764705882353,Premature atrial contractions on ECG at the time of admission to hospital
+n_r_ecg_p_02,94,0.06911764705882353,Frequent premature atrial contractions on ECG at the time of admission to hospital
+n_r_ecg_p_03,94,0.06911764705882353,Premature ventricular contractions on ECG at the time of admission to hospital
+n_r_ecg_p_04,94,0.06911764705882353,Frequent premature ventricular contractions on ECG at the time of admission to hospital
+n_r_ecg_p_05,94,0.06911764705882353,Paroxysms of atrial fibrillation on ECG at the time of admission to hospital
+n_r_ecg_p_06,94,0.06911764705882353,Persistent form of atrial fibrillation on ECG at the time of admission to hospital
+n_r_ecg_p_08,94,0.06911764705882353,Paroxysms of supraventricular tachycardia on ECG at the time of admission to hospital
+n_r_ecg_p_09,94,0.06911764705882353,Paroxysms of ventricular tachycardia on ECG at the time of admission to hospital
+n_r_ecg_p_10,94,0.06911764705882353,Ventricular fibrillation on ECG at the time of admission to hospital
+STENOK_AN,90,0.0661764705882353,Exertional angina pectoris in the anamnesis
+FK_STENOK,62,0.045588235294117645,Functional class (FC) of angina pectoris in the last year
+ant_im,59,0.04338235294117647,Presence of an anterior myocardial infarction (left ventricular) (ECG changes in leads V1 – V4 )
+inf_im,58,0.04264705882352941,"Presence of an inferior myocardial infarction (left ventricular) (ECG changes in leads III, AVF, II)."
+lat_im,56,0.041176470588235294,"Presence of a lateral myocardial infarction (left ventricular) (ECG changes in leads V5 – V6 , I, AVL)"
+post_im,53,0.03897058823529412,"Presence of a posterior myocardial infarction (left ventricular) (ECG changes in V7 – V9, reciprocity changes in leads V1 – V3)"
+ZSN_A,45,0.03308823529411765,Presence of chronic Heart failure (HF) in the anamnesis
+IBS_POST,43,0.03161764705882353,"Coronary heart disease (CHD) in recent weeks, days before admission to hospital"
+nr01,18,0.013235294117647059,Premature atrial contractions in the anamnesis
+nr02,18,0.013235294117647059,Premature ventricular contractions in the anamnesis
+nr03,18,0.013235294117647059,Paroxysms of atrial fibrillation in the anamnesis
+nr04,18,0.013235294117647059,A persistent form of atrial fibrillation in the anamnesis
+nr07,18,0.013235294117647059,Ventricular fibrillation in the anamnesis
+nr08,18,0.013235294117647059,Ventricular paroxysmal tachycardia in the anamnesis
+nr11,18,0.013235294117647059,Observing of arrhythmia in the anamnesis
+np01,14,0.010294117647058823,First-degree AV block in the anamnesis
+np04,14,0.010294117647058823,Third-degree AV block in the anamnesis
+np05,14,0.010294117647058823,LBBB (anterior branch) in the anamnesis
+np07,14,0.010294117647058823,Incomplete LBBB in the anamnesis
+np08,14,0.010294117647058823,Complete LBBB in the anamnesis
+np09,14,0.010294117647058823,Incomplete RBBB in the anamnesis
+np10,14,0.010294117647058823,Complete RBBB in the anamnesis
+ASP_S_n,12,0.008823529411764706,Use of acetylsalicylic acid in the ICU
+GEPAR_S_n,12,0.008823529411764706,Use of anticoagulants (heparin) in the ICU
+K_SH_POST,12,0.008823529411764706,Cardiogenic shock at the time of admission to intensive care unit
+MP_TP_POST,12,0.008823529411764706,"Paroxysms of atrial fibrillation at the time of admission to intensive care unit, (or at a pre- hospital stage)"
+TIKL_S_n,11,0.008088235294117648,Use of Ticlid in the ICU
+TRENT_S_n,11,0.008088235294117648,Use of Trental in the ICU
+FIB_G_POST,10,0.007352941176470588,"Ventricular fibrillation at the time of admission to intensive care unit, (or at a pre-hospital stage)"
+GT_POST,10,0.007352941176470588,"Paroxysms of ventricular tachycardia at the time of admission to intensive care unit, (or at a pre-hospital stage)"
+O_L_POST,10,0.007352941176470588,Pulmonary edema at the time of admission to intensive care unit
+SVT_POST,10,0.007352941176470588,"Paroxysms of supraventricular tachycardia at the time of admission to intensive care unit, (or at a pre-hospital stage)"
+fibr_ter_01,9,0.006617647058823529,Fibrinolytic therapy by Сеliasum 750k IU
+fibr_ter_02,9,0.006617647058823529,Fibrinolytic therapy by Сеliasum 1m IU
+fibr_ter_03,9,0.006617647058823529,Fibrinolytic therapy by Сеliasum 3m IU
+fibr_ter_05,9,0.006617647058823529,Fibrinolytic therapy by Streptase
+fibr_ter_06,9,0.006617647058823529,Fibrinolytic therapy by Сеliasum 500k IU
+fibr_ter_07,9,0.006617647058823529,Fibrinolytic therapy by Сеliasum 250k IU
+fibr_ter_08,9,0.006617647058823529,Fibrinolytic therapy by Streptodecase 1.5m IU
+ANT_CA_S_n,8,0.0058823529411764705,Use of calcium channel blockers in the ICU
+B_BLOK_S_n,7,0.005147058823529412,Use of beta-blockers in the ICU
+GB,7,0.005147058823529412,Presence of an essential hypertension
+SIM_GIPERT,7,0.005147058823529412,Symptomatic hypertension
+endocr_01,7,0.005147058823529412,Diabetes mellitus in the anamnesis
+endocr_02,7,0.005147058823529412,Obesity in the anamnesis
+endocr_03,7,0.005147058823529412,Thyrotoxicosis in the anamnesis
+AGE,6,0.004411764705882353,Age
+LID_S_n,6,0.004411764705882353,Use of lidocaine in the ICU
+zab_leg_01,6,0.004411764705882353,Chronic bronchitis in the anamnesis
+zab_leg_02,6,0.004411764705882353,Obstructive chronic bronchitis in the anamnesis
+zab_leg_03,6,0.004411764705882353,Bronchial asthma in the anamnesis
+zab_leg_04,6,0.004411764705882353,Chronic pneumonia in the anamnesis
+zab_leg_06,6,0.004411764705882353,Pulmonary tuberculosis in the anamnesis
+NITR_S,5,0.003676470588235294,Use of liquid nitrates in the ICU
+INF_ANAM,4,0.0029411764705882353,Quantity of myocardial infarctions in the anamnesis
+IM_PG_P,0,0.0,Presence of a right ventricular myocardial infarction
+SEX,0,0.0,Gender

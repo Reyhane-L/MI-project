@@ -1,0 +1,103 @@
+feature,count,mean,std,min,25%,50%,75%,max,description
+AGE,1354.0,61.6248153618907,11.288182513239686,26.0,54.0,62.0,70.0,92.0,Age
+SEX,1360.0,0.6264705882352941,0.4839187737225081,0.0,0.0,1.0,1.0,1.0,Gender
+INF_ANAM,1356.0,0.5545722713864307,0.8377450192524077,0.0,0.0,0.0,1.0,3.0,Quantity of myocardial infarctions in the anamnesis
+STENOK_AN,1270.0,2.3133858267716536,2.4522665158123362,0.0,0.0,1.0,5.0,6.0,Exertional angina pectoris in the anamnesis
+FK_STENOK,1298.0,1.197226502311248,1.0468994554683477,0.0,0.0,2.0,2.0,4.0,Functional class (FC) of angina pectoris in the last year
+IBS_POST,1317.0,1.14958238420653,0.8119230569386093,0.0,0.0,1.0,2.0,2.0,"Coronary heart disease (CHD) in recent weeks, days before admission to hospital"
+IBS_NASL,64.0,0.390625,0.491747370293402,0.0,0.0,0.0,1.0,1.0,Heredity on CHD
+GB,1353.0,1.3895048041389504,1.0850418447670773,0.0,0.0,2.0,2.0,3.0,Presence of an essential hypertension
+SIM_GIPERT,1353.0,0.031781226903178125,0.17548202263654225,0.0,0.0,0.0,0.0,1.0,Symptomatic hypertension
+DLIT_AG,1165.0,3.3115879828326182,3.0983164647928825,0.0,0.0,3.0,7.0,7.0,Duration of arterial hypertension
+ZSN_A,1315.0,0.20532319391634982,0.6905332561218083,0.0,0.0,0.0,0.0,4.0,Presence of chronic Heart failure (HF) in the anamnesis
+nr11,1342.0,0.022354694485842028,0.1478893492824592,0.0,0.0,0.0,0.0,1.0,Observing of arrhythmia in the anamnesis
+nr01,1342.0,0.0029806259314456036,0.05453400649580843,0.0,0.0,0.0,0.0,1.0,Premature atrial contractions in the anamnesis
+nr02,1342.0,0.00894187779433681,0.09417286794915401,0.0,0.0,0.0,0.0,1.0,Premature ventricular contractions in the anamnesis
+nr03,1342.0,0.020119225037257823,0.14046046817540944,0.0,0.0,0.0,0.0,1.0,Paroxysms of atrial fibrillation in the anamnesis
+nr04,1342.0,0.014903129657228018,0.12121045418391774,0.0,0.0,0.0,0.0,1.0,A persistent form of atrial fibrillation in the anamnesis
+nr07,1342.0,0.0007451564828614009,0.027297554521630706,0.0,0.0,0.0,0.0,1.0,Ventricular fibrillation in the anamnesis
+nr08,1342.0,0.0014903129657228018,0.03859017519044644,0.0,0.0,0.0,0.0,1.0,Ventricular paroxysmal tachycardia in the anamnesis
+np01,1346.0,0.0014858841010401188,0.03853283475812017,0.0,0.0,0.0,0.0,1.0,First-degree AV block in the anamnesis
+np04,1346.0,0.002228826151560178,0.047175331603811814,0.0,0.0,0.0,0.0,1.0,Third-degree AV block in the anamnesis
+np05,1346.0,0.006686478454680535,0.08152734252453996,0.0,0.0,0.0,0.0,1.0,LBBB (anterior branch) in the anamnesis
+np07,1346.0,0.0007429420505200594,0.027256963340035866,0.0,0.0,0.0,0.0,1.0,Incomplete LBBB in the anamnesis
+np08,1346.0,0.003714710252600297,0.06085772578042211,0.0,0.0,0.0,0.0,1.0,Complete LBBB in the anamnesis
+np09,1346.0,0.0007429420505200594,0.02725696334003587,0.0,0.0,0.0,0.0,1.0,Incomplete RBBB in the anamnesis
+np10,1346.0,0.002228826151560178,0.04717533160381181,0.0,0.0,0.0,0.0,1.0,Complete RBBB in the anamnesis
+endocr_01,1353.0,0.13155949741315595,0.338136217628246,0.0,0.0,0.0,0.0,1.0,Diabetes mellitus in the anamnesis
+endocr_02,1353.0,0.021433850702143386,0.14487910265399492,0.0,0.0,0.0,0.0,1.0,Obesity in the anamnesis
+endocr_03,1353.0,0.008130081300813009,0.08983288686990391,0.0,0.0,0.0,0.0,1.0,Thyrotoxicosis in the anamnesis
+zab_leg_01,1354.0,0.07902511078286559,0.2698776284324659,0.0,0.0,0.0,0.0,1.0,Chronic bronchitis in the anamnesis
+zab_leg_02,1354.0,0.06646971935007386,0.24919341466946762,0.0,0.0,0.0,0.0,1.0,Obstructive chronic bronchitis in the anamnesis
+zab_leg_03,1354.0,0.02141802067946824,0.1448267242071167,0.0,0.0,0.0,0.0,1.0,Bronchial asthma in the anamnesis
+zab_leg_04,1354.0,0.005908419497784343,0.07666714536315927,0.0,0.0,0.0,0.0,1.0,Chronic pneumonia in the anamnesis
+zab_leg_06,1354.0,0.014771048744460856,0.12067982789651052,0.0,0.0,0.0,0.0,1.0,Pulmonary tuberculosis in the anamnesis
+S_AD_KBRIG,497.0,137.66599597585514,34.983940881795334,0.0,120.0,140.0,160.0,260.0,Systolic blood pressure according to Emergency Cardiology Team
+D_AD_KBRIG,497.0,81.54929577464789,19.580120877452433,0.0,70.0,80.0,90.0,190.0,Diastolic blood pressure according to Emergency Cardiology Team
+S_AD_ORIT,1140.0,134.5,31.396596450200082,0.0,120.0,130.0,150.0,260.0,Systolic blood pressure according to intensive care unit
+D_AD_ORIT,1140.0,82.60526315789474,18.116110933302423,0.0,80.0,80.0,90.0,190.0,Diastolic blood pressure according to intensive care unit
+O_L_POST,1350.0,0.06518518518518518,0.24694381569996124,0.0,0.0,0.0,0.0,1.0,Pulmonary edema at the time of admission to intensive care unit
+K_SH_POST,1348.0,0.02744807121661721,0.16344568662360381,0.0,0.0,0.0,0.0,1.0,Cardiogenic shock at the time of admission to intensive care unit
+MP_TP_POST,1348.0,0.06231454005934718,0.24181566760856524,0.0,0.0,0.0,0.0,1.0,"Paroxysms of atrial fibrillation at the time of admission to intensive care unit, (or at a pre- hospital stage)"
+SVT_POST,1350.0,0.0044444444444444444,0.06654300366524407,0.0,0.0,0.0,0.0,1.0,"Paroxysms of supraventricular tachycardia at the time of admission to intensive care unit, (or at a pre-hospital stage)"
+GT_POST,1350.0,0.005185185185185185,0.07184791461464086,0.0,0.0,0.0,0.0,1.0,"Paroxysms of ventricular tachycardia at the time of admission to intensive care unit, (or at a pre-hospital stage)"
+FIB_G_POST,1350.0,0.008888888888888889,0.09389572522336229,0.0,0.0,0.0,0.0,1.0,"Ventricular fibrillation at the time of admission to intensive care unit, (or at a pre-hospital stage)"
+ant_im,1301.0,1.5764796310530362,1.7109691982818984,0.0,0.0,1.0,4.0,4.0,Presence of an anterior myocardial infarction (left ventricular) (ECG changes in leads V1 – V4 )
+lat_im,1304.0,0.8611963190184049,0.8873099263530786,0.0,0.0,1.0,1.0,4.0,"Presence of a lateral myocardial infarction (left ventricular) (ECG changes in leads V5 – V6 , I, AVL)"
+inf_im,1302.0,0.9976958525345622,1.3969861838311861,0.0,0.0,0.0,2.0,4.0,"Presence of an inferior myocardial infarction (left ventricular) (ECG changes in leads III, AVF, II)."
+post_im,1307.0,0.26013771996939555,0.6942959323385616,0.0,0.0,0.0,0.0,4.0,"Presence of a posterior myocardial infarction (left ventricular) (ECG changes in V7 – V9, reciprocity changes in leads V1 – V3)"
+IM_PG_P,1360.0,0.030147058823529412,0.17105475197675812,0.0,0.0,0.0,0.0,1.0,Presence of a right ventricular myocardial infarction
+ritm_ecg_p_01,1234.0,0.6790923824959482,0.4670146282413425,0.0,0.0,1.0,1.0,1.0,ECG rhythm at the time of admission to hospital – sinus (with a heart rate 60-90)
+ritm_ecg_p_02,1234.0,0.05672609400324149,0.23141227507233703,0.0,0.0,0.0,0.0,1.0,ECG rhythm at the time of admission to hospital – atrial fibrillation
+ritm_ecg_p_04,1234.0,0.012155591572123177,0.10962468644737204,0.0,0.0,0.0,0.0,1.0,ECG rhythm at the time of admission to hospital – atrial
+ritm_ecg_p_06,1234.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,ECG rhythm at the time of admission to hospital – idioventricular
+ritm_ecg_p_07,1234.0,0.2179902755267423,0.4130481473217445,0.0,0.0,0.0,0.0,1.0,ECG rhythm at the time of admission to hospital – sinus with a heart rate above 90 (tachycardia)
+ritm_ecg_p_08,1234.0,0.03322528363047002,0.1792970037350835,0.0,0.0,0.0,0.0,1.0,ECG rhythm at the time of admission to hospital – sinus with a heart rate below 60 (bradycardia)
+n_r_ecg_p_01,1266.0,0.03712480252764613,0.18914230015641395,0.0,0.0,0.0,0.0,1.0,Premature atrial contractions on ECG at the time of admission to hospital
+n_r_ecg_p_02,1266.0,0.005529225908372828,0.07418221034009308,0.0,0.0,0.0,0.0,1.0,Frequent premature atrial contractions on ECG at the time of admission to hospital
+n_r_ecg_p_03,1266.0,0.12796208530805686,0.33417959501351235,0.0,0.0,0.0,0.0,1.0,Premature ventricular contractions on ECG at the time of admission to hospital
+n_r_ecg_p_04,1266.0,0.04660347551342812,0.2108713242034356,0.0,0.0,0.0,0.0,1.0,Frequent premature ventricular contractions on ECG at the time of admission to hospital
+n_r_ecg_p_05,1266.0,0.04107424960505529,0.1985404032327919,0.0,0.0,0.0,0.0,1.0,Paroxysms of atrial fibrillation on ECG at the time of admission to hospital
+n_r_ecg_p_06,1266.0,0.018957345971563982,0.13642824837217243,0.0,0.0,0.0,0.0,1.0,Persistent form of atrial fibrillation on ECG at the time of admission to hospital
+n_r_ecg_p_08,1266.0,0.001579778830963665,0.03973071851783127,0.0,0.0,0.0,0.0,1.0,Paroxysms of supraventricular tachycardia on ECG at the time of admission to hospital
+n_r_ecg_p_09,1266.0,0.0007898894154818325,0.028104971365967138,0.0,0.0,0.0,0.0,1.0,Paroxysms of ventricular tachycardia on ECG at the time of admission to hospital
+n_r_ecg_p_10,1266.0,0.001579778830963665,0.03973071851783126,0.0,0.0,0.0,0.0,1.0,Ventricular fibrillation on ECG at the time of admission to hospital
+n_p_ecg_p_01,1266.0,0.0007898894154818325,0.028104971365967138,0.0,0.0,0.0,0.0,1.0,Sinoatrial block on ECG at the time of admission to hospital
+n_p_ecg_p_03,1266.0,0.018957345971563982,0.13642824837217246,0.0,0.0,0.0,0.0,1.0,First-degree AV block on ECG at the time of admission to hospital
+n_p_ecg_p_04,1266.0,0.00315955766192733,0.056143251061941395,0.0,0.0,0.0,0.0,1.0,Type 1 Second-degree AV block (Mobitz I/Wenckebach) on ECG at the time of admission to hospital
+n_p_ecg_p_05,1266.0,0.0007898894154818325,0.028104971365967138,0.0,0.0,0.0,0.0,1.0,Type 2 Second-degree AV block (Mobitz II/Hay) on ECG at the time of admission to hospital
+n_p_ecg_p_06,1266.0,0.01263823064770932,0.11175137674877376,0.0,0.0,0.0,0.0,1.0,Third-degree AV block on ECG at the time of admission to hospital
+n_p_ecg_p_07,1266.0,0.05845181674565561,0.23468853391935998,0.0,0.0,0.0,0.0,1.0,LBBB (anterior branch) on ECG at the time of admission to hospital
+n_p_ecg_p_08,1266.0,0.0039494470774091624,0.06274518871757354,0.0,0.0,0.0,0.0,1.0,LBBB (posterior branch) on ECG at the time of admission to hospital
+n_p_ecg_p_09,1266.0,0.0071090047393364926,0.0840478828204352,0.0,0.0,0.0,0.0,1.0,Incomplete LBBB on ECG at the time of admission to hospital
+n_p_ecg_p_10,1266.0,0.022906793048973143,0.14966551111942972,0.0,0.0,0.0,0.0,1.0,Complete LBBB on ECG at the time of admission to hospital
+n_p_ecg_p_11,1266.0,0.017377567140600316,0.13072523011591575,0.0,0.0,0.0,0.0,1.0,Incomplete RBBB on ECG at the time of admission to hospital
+n_p_ecg_p_12,1266.0,0.05055292259083728,0.21916949413059206,0.0,0.0,0.0,0.0,1.0,Complete RBBB on ECG at the time of admission to hospital
+fibr_ter_01,1351.0,0.007401924500370096,0.08574717684585477,0.0,0.0,0.0,0.0,1.0,Fibrinolytic therapy by Сеliasum 750k IU
+fibr_ter_02,1351.0,0.009622501850481125,0.09765740371676422,0.0,0.0,0.0,0.0,1.0,Fibrinolytic therapy by Сеliasum 1m IU
+fibr_ter_03,1351.0,0.04071058475203553,0.19769208725175144,0.0,0.0,0.0,0.0,1.0,Fibrinolytic therapy by Сеliasum 3m IU
+fibr_ter_05,1351.0,0.0029607698001480384,0.054352463713278565,0.0,0.0,0.0,0.0,1.0,Fibrinolytic therapy by Streptase
+fibr_ter_06,1351.0,0.0051813471502590676,0.07182143789080224,0.0,0.0,0.0,0.0,1.0,Fibrinolytic therapy by Сеliasum 500k IU
+fibr_ter_07,1351.0,0.0029607698001480384,0.05435246371327857,0.0,0.0,0.0,0.0,1.0,Fibrinolytic therapy by Сеliasum 250k IU
+fibr_ter_08,1351.0,0.0014803849000740192,0.038461517373428684,0.0,0.0,0.0,0.0,1.0,Fibrinolytic therapy by Streptodecase 1.5m IU
+GIPO_K,1054.0,0.40227703984819735,0.490590023185703,0.0,0.0,0.0,1.0,1.0,Hypokalemia ( < 4 mmol/L)
+K_BLOOD,1052.0,4.188498098859314,0.7416075494291516,2.3,3.7,4.1,4.6,8.2,Serum potassium content
+GIPER_Na,1049.0,0.022878932316491896,0.14958883094635494,0.0,0.0,0.0,0.0,1.0,Increase of sodium in serum (more than 150 mmol/L)
+Na_BLOOD,1049.0,136.65395614871306,6.51271408359959,117.0,133.0,136.0,140.0,169.0,Serum sodium content
+ALT_BLOOD,1131.0,0.4800088417329795,0.3864727032588879,0.03,0.23,0.38,0.61,3.0,Serum AlAT content
+AST_BLOOD,1130.0,0.26568141592920363,0.2034784430897901,0.04,0.15,0.22,0.33,2.15,Serum AsAT content
+KFK_BLOOD,4.0,1.9999999999999998,1.0954451150103324,1.2,1.3499999999999999,1.6,2.25,3.6,Serum CPK content
+L_BLOOD,1257.0,8.771996817820206,3.367784134191524,2.0,6.4,8.0,10.4,27.9,White blood cell count (billions per liter)
+ROE,1191.0,13.340890008396306,11.148636675011927,1.0,5.0,10.0,18.0,140.0,ESR (Erythrocyte sedimentation rate)
+TIME_B_S,1260.0,4.6873015873015875,2.86481168823577,1.0,2.0,4.0,7.0,9.0,Time elapsed from the beginning of the attack of CHD to the hospital
+NA_KB,840.0,0.5916666666666667,0.491818239566975,0.0,0.0,1.0,1.0,1.0,Use of opioid drugs by the Emergency Cardiology Team
+NOT_NA_KB,813.0,0.6814268142681427,0.46620988436023475,0.0,0.0,1.0,1.0,1.0,Use of NSAIDs by the Emergency Cardiology Team
+LID_KB,821.0,0.38976857490864797,0.4879949720218195,0.0,0.0,0.0,1.0,1.0,Use of lidocaine by the Emergency Cardiology Team
+NITR_S,1355.0,0.1121771217712177,0.3157007603440528,0.0,0.0,0.0,0.0,1.0,Use of liquid nitrates in the ICU
+LID_S_n,1354.0,0.2776957163958641,0.4480279616537543,0.0,0.0,0.0,1.0,1.0,Use of lidocaine in the ICU
+B_BLOK_S_n,1353.0,0.13155949741315595,0.338136217628246,0.0,0.0,0.0,0.0,1.0,Use of beta-blockers in the ICU
+ANT_CA_S_n,1352.0,0.6664201183431953,0.471666081256467,0.0,0.0,1.0,1.0,1.0,Use of calcium channel blockers in the ICU
+GEPAR_S_n,1348.0,0.7143916913946587,0.45187130601413367,0.0,0.0,1.0,1.0,1.0,Use of anticoagulants (heparin) in the ICU
+ASP_S_n,1348.0,0.7381305637982196,0.4398151135319754,0.0,0.0,1.0,1.0,1.0,Use of acetylsalicylic acid in the ICU
+TIKL_S_n,1349.0,0.01704966641957005,0.12950447007267954,0.0,0.0,0.0,0.0,1.0,Use of Ticlid in the ICU
+TRENT_S_n,1349.0,0.2112676056338028,0.4083591799839037,0.0,0.0,0.0,0.0,1.0,Use of Trental in the ICU

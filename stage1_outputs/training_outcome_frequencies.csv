@@ -1,0 +1,7 @@
+outcome,description,value,count,proportion
+DEATH_BINARY,Binary lethal outcome derived from LET_IS: 1-7 means death; 0 means no lethal outcome,0,1143,0.8404411764705882
+DEATH_BINARY,Binary lethal outcome derived from LET_IS: 1-7 means death; 0 means no lethal outcome,1,217,0.15955882352941175
+ZSN,Chronic heart failure,0,1054,0.775
+ZSN,Chronic heart failure,1,306,0.225
+FIBR_PREDS,Atrial fibrillation,0,1225,0.9007352941176471
+FIBR_PREDS,Atrial fibrillation,1,135,0.09926470588235294
