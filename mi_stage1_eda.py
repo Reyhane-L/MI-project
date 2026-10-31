@@ -9,11 +9,11 @@ from pathlib import Path
 import os
 import tempfile
 
-# Keep Matplotlib's font/config cache in writable temporary storage.
+
 os.environ.setdefault("MPLCONFIGDIR", str(Path(tempfile.gettempdir()) / "mi-stage1-mplconfig"))
 import matplotlib
 
-matplotlib.use("Agg")  # Save figures in a headless run.
+matplotlib.use("Agg")  
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
