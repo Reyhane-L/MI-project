@@ -74,3 +74,8 @@ task does not imply a pass for another.
 6. Verify the comparison plot and report, including searched values,
    per-target comparison conclusions, limitations, and absence of significance
    claims. Record a separate PASS/FAIL; do not change implementation outputs.
+7. For the Log Loss addition, verify numeric clipping and fold calculations
+   from probabilities, mean/sample SD in target and aggregate summaries,
+   matched-fold Log Loss for all six comparators, paired differences with lower
+   better, AP-only tuning, and the updated report/plot. Comparator refits must
+   use saved settings on the same development outer folds and preserve warnings.

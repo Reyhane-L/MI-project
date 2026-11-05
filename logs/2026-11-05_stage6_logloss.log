@@ -1,0 +1,72 @@
+# Stage 6 — add Log Loss to saved CV results
+
+Date: 2026-11-05 (Asia/Tehran)
+Task: Additional Log Loss metric for Stage 6
+
+## Scope and data boundary
+
+- User requested binary cross-entropy/Log Loss on each outer validation fold,
+  mean and sample standard deviation reporting, and model comparisons.
+- Saved CatBoost OOF probabilities are used to calculate CatBoost fold Log
+  Loss. Earlier Stage 2–4 files contain fold scores and selected settings but
+  no prediction probabilities, so the six comparison estimators are refit on
+  the same development outer folds using fixed or saved fold-specific settings
+  solely to obtain probabilities for Log Loss.
+- No CatBoost refit, parameter search, model selection, threshold selection,
+  calibration, or held-out data access occurs in `--add-logloss` mode. AP
+  remains the sole hyperparameter search objective.
+- User explicitly requested changes to Stage 6 metric/comparison artifacts.
+  The update mode writes only `fold_level_metrics.csv`, `target_summary.csv`,
+  `aggregate_metrics.csv`, `model_comparison.csv`, `paired_comparison.csv`,
+  `model_comparison.png`, and `stage6_report.md`. The existing OOF and tuning
+  outputs are read-only in this mode.
+
+## Implementation and review
+
+- `.venv/bin/python -m py_compile mi_stage6_catboost.py` — passed.
+- The first independent code review found that repeated runs could duplicate
+  fold-level Log Loss summary columns. The implementation now drops all prior
+  fold `log_loss`, `log_loss_mean`, and `log_loss_std` fields before rebuilding
+  them. The second independent review passed and confirmed idempotent schema
+  handling.
+- Log Loss is computed after clipping probabilities to `[1e-15, 1-1e-15]`.
+- Comparator refit warnings are stored in `paired_comparison.csv` and will be
+  retained in this record after execution.
+
+## Command and result
+
+- `.venv/bin/python mi_stage6_catboost.py --add-logloss` — first attempt failed
+  during comparator probability validation with a function-call signature
+  mismatch (`TypeError`). It stopped before writing any Stage 6 outputs. The
+  optional model-name argument was fixed and independently reviewed; the
+  failed attempt remains visible in this record.
+- Corrected `.venv/bin/python mi_stage6_catboost.py --add-logloss` — completed.
+  It calculated CatBoost Log Loss from saved OOF probabilities and refit only
+  the six existing comparators on the same outer development folds with saved
+  settings. It did not fit CatBoost, retune models, or select anything by Log
+  Loss. No fit/search/comparator-refit warnings were recorded.
+- The first ad hoc validation command had a Python `SyntaxError` because of
+  inline loop layout; it did not modify artifacts. The corrected
+  development-only validation passed all checks.
+
+## Validation
+
+Independent output verification: PASS.
+
+## Results and validation
+
+- Log Loss mean ± sample SD for CatBoost: `DEATH_BINARY` 0.262 ± 0.027,
+  `ZSN` 0.470 ± 0.025, `FIBR_PREDS` 0.317 ± 0.032.
+- Best existing model mean Log Loss was Logistic Regression for `DEATH_BINARY`
+  (0.295), Random Forest tuned for `ZSN` (0.465), and Random Forest
+  preliminary for `FIBR_PREDS` (0.292). Lower is better; these are descriptive
+  five-fold comparisons.
+- Validated Log Loss in 15 CatBoost fold rows, 3 target summaries, 3 CatBoost
+  aggregates, 21 seven-model comparison rows, and 90 paired rows. Recomputed
+  CatBoost fold losses from saved OOF predictions matched within `1e-12`;
+  means/sample SDs and paired differences/directions matched their source
+  values.
+- Independent reviewer confirmed all required outputs, AP-only search
+  objective, no Log Loss selection, OOF development-ID/label alignment, zero
+  warnings, and the updated four-panel plot. No held-out files were enumerated
+  or accessed.

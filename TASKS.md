@@ -11,7 +11,7 @@
 
 ## Additional project experiments (outside the required assignment sequence)
 
-- [x] **Stage 6 — CatBoost nested-CV comparison.** `mi_stage6_catboost.py` and `stage6_catboost_outputs/` compare CatBoost with the six saved prior model results using the same target-specific five-fold split signatures, three-fold AP tuning, native categorical handling, fold metrics, paired comparisons, and development-only OOF predictions. Acceptance: all targets/folds complete, no held-out access, one valid OOF probability per eligible development ID/target, all nine outputs validated, and independent review passes. Independent output verification passed 2026-11-05. This experiment does not replace the required final model selection/calibration task T06.
+- [x] **Stage 6 — CatBoost nested-CV comparison.** `mi_stage6_catboost.py` and `stage6_catboost_outputs/` compare CatBoost with the six saved prior model results using the same target-specific five-fold split signatures, three-fold AP tuning, native categorical handling, fold metrics, paired comparisons, and development-only OOF predictions. The additional Log Loss update uses clipped validation probabilities, reports fold means/sample SDs, and refits comparators on the same development folds with already-selected settings; AP remains the sole tuning metric. Acceptance: all targets/folds complete, no held-out access, one valid OOF probability per eligible development ID/target, all requested metrics/outputs validated, and independent review passes. Independent verification passed 2026-11-05. This experiment does not replace the required final model selection/calibration task T06.
 
 ## Remaining assignment work
 

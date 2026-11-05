@@ -16,56 +16,60 @@ Numerical missing values are passed through unchanged to CatBoost's native numer
 
 ## Results
 
-All reported scores are outer-fold results. AP is the primary ranking metric; AUROC and Brier are secondary probability/ranking metrics. Precision, recall, specificity, F1, accuracy, and confusion counts use the fixed 0.5 threshold and are not threshold selection or calibration.
+All reported scores are outer-fold results. AP is the primary metric for tuning; Log Loss is a secondary probability metric calculated after fitting and is never used for parameter or model selection. Log Loss probabilities are clipped to [1e-15, 1 − 1e-15] before scoring. AUROC and Brier are also secondary. Precision, recall, specificity, F1, accuracy, and confusion counts use the fixed 0.5 threshold and are not threshold selection or calibration.
 
-| Target | Model | AP mean ± SD | AUROC mean ± SD | Brier mean ± SD |
-|---|---|---:|---:|---:|
-| DEATH_BINARY | Dummy prior prevalence | 0.160 ± 0.002 | 0.500 ± 0.000 | 0.134 ± 0.001 |
-| DEATH_BINARY | Logistic regression | 0.651 ± 0.031 | 0.879 ± 0.017 | 0.089 ± 0.005 |
-| DEATH_BINARY | Random Forest preliminary | 0.668 ± 0.020 | 0.892 ± 0.014 | 0.091 ± 0.005 |
-| DEATH_BINARY | Random Forest tuned | 0.671 ± 0.037 | 0.883 ± 0.022 | 0.109 ± 0.024 |
-| DEATH_BINARY | Extra Trees preliminary | 0.656 ± 0.038 | 0.877 ± 0.011 | 0.091 ± 0.003 |
-| DEATH_BINARY | Extra Trees tuned | 0.669 ± 0.047 | 0.881 ± 0.016 | 0.106 ± 0.015 |
-| DEATH_BINARY | CatBoost tuned | 0.733 ± 0.059 | 0.901 ± 0.022 | 0.077 ± 0.009 |
-| ZSN | Dummy prior prevalence | 0.225 ± 0.002 | 0.500 ± 0.000 | 0.174 ± 0.001 |
-| ZSN | Logistic regression | 0.315 ± 0.030 | 0.621 ± 0.025 | 0.179 ± 0.005 |
-| ZSN | Random Forest preliminary | 0.479 ± 0.084 | 0.720 ± 0.048 | 0.153 ± 0.009 |
-| ZSN | Random Forest tuned | 0.502 ± 0.083 | 0.718 ± 0.045 | 0.148 ± 0.013 |
-| ZSN | Extra Trees preliminary | 0.400 ± 0.036 | 0.708 ± 0.024 | 0.158 ± 0.005 |
-| ZSN | Extra Trees tuned | 0.485 ± 0.064 | 0.733 ± 0.035 | 0.155 ± 0.005 |
-| ZSN | CatBoost tuned | 0.479 ± 0.049 | 0.721 ± 0.048 | 0.150 ± 0.009 |
-| FIBR_PREDS | Dummy prior prevalence | 0.099 ± 0.000 | 0.500 ± 0.000 | 0.089 ± 0.000 |
-| FIBR_PREDS | Logistic regression | 0.246 ± 0.068 | 0.702 ± 0.071 | 0.089 ± 0.008 |
-| FIBR_PREDS | Random Forest preliminary | 0.301 ± 0.108 | 0.725 ± 0.063 | 0.083 ± 0.005 |
-| FIBR_PREDS | Random Forest tuned | 0.277 ± 0.085 | 0.708 ± 0.045 | 0.084 ± 0.004 |
-| FIBR_PREDS | Extra Trees preliminary | 0.301 ± 0.125 | 0.722 ± 0.054 | 0.083 ± 0.007 |
-| FIBR_PREDS | Extra Trees tuned | 0.301 ± 0.123 | 0.726 ± 0.060 | 0.083 ± 0.004 |
-| FIBR_PREDS | CatBoost tuned | 0.266 ± 0.068 | 0.698 ± 0.041 | 0.086 ± 0.005 |
-
-Fold signatures checked against prior stages: 450 individual values matched.
+| Target | Model | AP mean ± SD | AUROC mean ± SD | Brier mean ± SD | Log Loss mean ± SD |
+|---|---|---:|---:|---:|---:|
+| DEATH_BINARY | Dummy prior prevalence | 0.160 ± 0.002 | 0.500 ± 0.000 | 0.134 ± 0.001 | 0.439 ± 0.003 |
+| DEATH_BINARY | Logistic regression | 0.651 ± 0.031 | 0.879 ± 0.017 | 0.089 ± 0.005 | 0.295 ± 0.020 |
+| DEATH_BINARY | Random Forest preliminary | 0.668 ± 0.020 | 0.892 ± 0.014 | 0.091 ± 0.005 | 0.298 ± 0.011 |
+| DEATH_BINARY | Random Forest tuned | 0.671 ± 0.037 | 0.883 ± 0.022 | 0.109 ± 0.024 | 0.367 ± 0.070 |
+| DEATH_BINARY | Extra Trees preliminary | 0.656 ± 0.038 | 0.877 ± 0.011 | 0.091 ± 0.003 | 0.298 ± 0.007 |
+| DEATH_BINARY | Extra Trees tuned | 0.669 ± 0.047 | 0.881 ± 0.016 | 0.106 ± 0.015 | 0.349 ± 0.049 |
+| DEATH_BINARY | CatBoost tuned | 0.733 ± 0.059 | 0.901 ± 0.022 | 0.077 ± 0.009 | 0.262 ± 0.027 |
+| ZSN | Dummy prior prevalence | 0.225 ± 0.002 | 0.500 ± 0.000 | 0.174 ± 0.001 | 0.533 ± 0.002 |
+| ZSN | Logistic regression | 0.315 ± 0.030 | 0.621 ± 0.025 | 0.179 ± 0.005 | 0.562 ± 0.049 |
+| ZSN | Random Forest preliminary | 0.479 ± 0.084 | 0.720 ± 0.048 | 0.153 ± 0.009 | 0.475 ± 0.023 |
+| ZSN | Random Forest tuned | 0.502 ± 0.083 | 0.718 ± 0.045 | 0.148 ± 0.013 | 0.465 ± 0.032 |
+| ZSN | Extra Trees preliminary | 0.400 ± 0.036 | 0.708 ± 0.024 | 0.158 ± 0.005 | 0.487 ± 0.014 |
+| ZSN | Extra Trees tuned | 0.485 ± 0.064 | 0.733 ± 0.035 | 0.155 ± 0.005 | 0.479 ± 0.012 |
+| ZSN | CatBoost tuned | 0.479 ± 0.049 | 0.721 ± 0.048 | 0.150 ± 0.009 | 0.470 ± 0.025 |
+| FIBR_PREDS | Dummy prior prevalence | 0.099 ± 0.000 | 0.500 ± 0.000 | 0.089 ± 0.000 | 0.323 ± 0.000 |
+| FIBR_PREDS | Logistic regression | 0.246 ± 0.068 | 0.702 ± 0.071 | 0.089 ± 0.008 | 0.316 ± 0.035 |
+| FIBR_PREDS | Random Forest preliminary | 0.301 ± 0.108 | 0.725 ± 0.063 | 0.083 ± 0.005 | 0.292 ± 0.021 |
+| FIBR_PREDS | Random Forest tuned | 0.277 ± 0.085 | 0.708 ± 0.045 | 0.084 ± 0.004 | 0.299 ± 0.014 |
+| FIBR_PREDS | Extra Trees preliminary | 0.301 ± 0.125 | 0.722 ± 0.054 | 0.083 ± 0.007 | 0.295 ± 0.023 |
+| FIBR_PREDS | Extra Trees tuned | 0.301 ± 0.123 | 0.726 ± 0.060 | 0.083 ± 0.004 | 0.294 ± 0.016 |
+| FIBR_PREDS | CatBoost tuned | 0.266 ± 0.068 | 0.698 ± 0.041 | 0.086 ± 0.005 | 0.317 ± 0.032 |
 
 ## Per-target comparison
 
-For each target and metric, CatBoost's five-fold mean is compared with the best mean among the six existing models. AP and AUROC are better when higher; Brier is better when lower. These are descriptive comparisons and do not establish statistical significance.
+For each target and metric, CatBoost's five-fold mean is compared with the best mean among the six existing models. AP and AUROC are better when higher; Brier and Log Loss are better when lower. These are descriptive comparisons and do not establish statistical significance.
 
 ### DEATH_BINARY
 - AP: CatBoost 0.733; best existing comparator Random Forest tuned 0.671; CatBoost led.
 - AUROC: CatBoost 0.901; best existing comparator Random Forest preliminary 0.892; CatBoost led.
 - Brier: CatBoost 0.077; best existing comparator Logistic regression 0.089; CatBoost led.
+- Log Loss: CatBoost 0.262; best existing comparator Logistic regression 0.295; CatBoost led.
 
 ### ZSN
 - AP: CatBoost 0.479; best existing comparator Random Forest tuned 0.502; CatBoost did not lead.
 - AUROC: CatBoost 0.721; best existing comparator Extra Trees tuned 0.733; CatBoost did not lead.
 - Brier: CatBoost 0.150; best existing comparator Random Forest tuned 0.148; CatBoost did not lead.
+- Log Loss: CatBoost 0.470; best existing comparator Random Forest tuned 0.465; CatBoost did not lead.
 
 ### FIBR_PREDS
 - AP: CatBoost 0.266; best existing comparator Extra Trees preliminary 0.301; CatBoost did not lead.
 - AUROC: CatBoost 0.698; best existing comparator Extra Trees tuned 0.726; CatBoost did not lead.
 - Brier: CatBoost 0.086; best existing comparator Random Forest preliminary 0.083; CatBoost did not lead.
+- Log Loss: CatBoost 0.317; best existing comparator Random Forest preliminary 0.292; CatBoost did not lead.
+
+
+Fold signatures checked against prior stages: 450 individual values matched.
 
 ## Comparison and limitations
 
-`paired_comparison.csv` gives target/fold-level differences against the Dummy, Logistic Regression, Random Forest, and Extra Trees results. It also records wins and ties for AP, AUROC, and Brier. Five folds are too few to establish statistical significance; differences are descriptive. CatBoost is not automatically declared best. Selection for the later final model stage should consider per-target evidence on development data and calibration separately.
+`paired_comparison.csv` gives target/fold-level differences against the Dummy, Logistic Regression, Random Forest, and Extra Trees results. It also records wins and ties for AP, AUROC, Brier, and Log Loss. Comparator Log Loss values were calculated by refitting each existing model on the same outer training folds using its previously fixed or saved fold-specific hyperparameters; the outer validation fold was used only to calculate Log Loss. This refit did not retune any model. Comparator refit warnings are preserved in `comparator_log_loss_fit_warnings`. Log Loss differences are descriptive and do not establish statistical significance. CatBoost is not automatically declared best. Selection for the later final model stage should consider per-target evidence on development data and calibration separately.
 
 This stage performs no probability calibration, threshold optimization, or held-out evaluation. Missing labels are excluded separately for each target. The small four-candidate search is an initial compute-bounded experiment and does not explore the full CatBoost parameter space.
 
@@ -73,11 +77,11 @@ Environment: scikit-learn `1.9.1`; CatBoost `1.2.10`. Run `.venv/bin/python mi_s
 
 ## Output files
 
-- `fold_level_metrics.csv`: CatBoost fold metrics, threshold confusion counts, probabilities, and warnings.
-- `target_summary.csv`: target label availability, prevalence, and fold-check counts.
-- `aggregate_metrics.csv`: mean and sample standard deviation by target.
-- `model_comparison.csv`: CatBoost plus six existing models.
-- `paired_comparison.csv`: fold-level comparisons against existing models.
+- `fold_level_metrics.csv`: CatBoost fold metrics including Log Loss, threshold confusion counts, probabilities, and warnings.
+- `target_summary.csv`: target label availability, prevalence, fold-check counts, and CatBoost Log Loss mean/sample SD.
+- `aggregate_metrics.csv`: CatBoost metric means and sample standard deviations by target.
+- `model_comparison.csv`: CatBoost plus six existing models, including comparable outer-fold Log Loss mean/sample SD.
+- `paired_comparison.csv`: fold-level comparisons against existing models, including CatBoost-minus-comparator Log Loss (lower is better) and comparator-refit warnings.
 - `tuning_results.csv`: best parameters and inner-CV AP by target/fold.
 - `oof_predictions.csv`: one development-only outer-fold prediction per eligible record/target, with ID for traceability only.
-- `model_comparison.png`: AP, AUROC, and Brier comparison plot.
+- `model_comparison.png`: AP, AUROC, Brier, and Log Loss comparison plot.

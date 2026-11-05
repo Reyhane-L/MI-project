@@ -55,6 +55,21 @@ Harness created. Existing implementation covers Stages 1–4; the final calibrat
   remains T06 (final estimator selection and calibration using development
   data only).
 
+### Stage 6 Log Loss addition (2026-11-05)
+
+- Added numerically clipped binary Log Loss to CatBoost outer-fold metrics,
+  target summaries, aggregate results, seven-model comparisons, paired fold
+  differences, report, and comparison plot. AP remains the only tuning metric.
+- Earlier stage outputs did not retain per-record probabilities, so the six
+  prior models were refit on the same development outer folds using their
+  fixed/saved settings only to calculate comparable Log Loss. No Log Loss
+  tuning or selection was performed.
+- Validation passed: 15 CatBoost fold values, all target-level mean/sample-SD
+  summaries, seven-model comparisons, and 90 paired rows were checked;
+  CatBoost fold Log Loss recomputed from saved OOF probabilities matched within
+  `1e-12`. Independent review passed; details are in
+  `logs/2026-11-05_stage6_logloss.log`.
+
 ## T05 implementation record (2026-11-03, Asia/Tehran)
 
 - Added `t05_requirement_leakage_audit.md`, a requirement-by-requirement map
