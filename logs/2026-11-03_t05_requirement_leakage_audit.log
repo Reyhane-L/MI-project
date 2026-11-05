@@ -1,0 +1,91 @@
+# T05 requirement and leakage audit — implementation run record
+
+Date/time: 2026-11-03, Asia/Tehran
+Task: T05 — Requirement and leakage audit
+Commit: no commit created (worktree contains untracked harness files)
+Operator: implementation session
+
+## Scope and locked-data safeguards
+
+- Scope was static review plus development-only artifact checks; no model
+  fitting, tuning, calibration, export, or report generation was run.
+- `X_test.csv` and `y_test.csv` were not listed, opened, read, hashed, or
+  passed to any command. No command globbed the Stage 1 output directory.
+- The repeatable checker has an explicit allowlist of `X_train.csv`,
+  `y_train.csv`, `column_dictionary.csv`, source scripts, and aggregate
+  development-CV CSVs. It does not scan directories.
+
+## Commands and results
+
+1. Read `AGENTS.md`, `TASKS.md`, `progress.md`, `verification.md`, and Git
+   status using `sed`/`git status --short` — exit 0.
+2. Read the PDF workflow instructions — exit 0.
+3. `pdfinfo AI-HW2-Guide.pdf; pdftotext -layout AI-HW2-Guide.pdf ...` — exit
+   127 for each unavailable Poppler executable. This failure is retained; no
+   dependency installation was attempted.
+4. `.venv/bin/python -c 'import pypdf; ... PdfReader("AI-HW2-Guide.pdf") ...'`
+   — exit 0. Read all 45 guide pages with pypdf 6.21.2; text was used only for
+   review in `/private/tmp`.
+5. Static source review using `rg`/`nl` on Stage 1-4 scripts, plus stage
+   reports and development aggregate CSV headers — exit 0.
+6. Development-only integrity probe over explicit paths `X_train.csv`,
+   `y_train.csv`, and `column_dictionary.csv` — exit 0. Results: X `(1360,
+   102)`; y `(1360, 13)`; roles `102/12/9/1`; ID/outcomes/forbidden fields
+   absent from X; binary death derivation matched every development row.
+7. `.venv/bin/python mi_stage5_audit_checks.py` — exit 0; all assertions
+   passed (output below).
+
+## Environment
+
+- Python 3.14.7
+- numpy 2.5.4
+- pandas 3.1.0
+- scikit-learn 1.9.1
+- pypdf 6.21.2
+
+## Checker output
+
+```text
+PASS: development predictor artifact is 1,360 by 102
+PASS: development predictors and outcomes have aligned row counts
+PASS: development predictor names are unique
+PASS: record ID is absent from development predictors
+PASS: dictionary identifies all 12 source outcomes
+PASS: no source outcome is a development predictor
+PASS: all nine documented post-admission fields are absent from development predictors
+PASS: development outcomes include the three required targets and LET_IS
+PASS: DEATH_BINARY equals LET_IS > 0 for every development row
+PASS: dictionary role counts match the admission-time feature policy
+PASS: development predictor order exactly matches the admission-time dictionary rows
+PASS: Stage 1 declares deterministic seed 42 and a 20% held-out split
+PASS: Stage 1 stratifies the held-out split by binary mortality
+PASS: mi_stage2_baselines.py declares development training inputs
+PASS: mi_stage2_baselines.py uses pipeline-based stratified CV
+PASS: mi_stage3_random_forest.py declares development training inputs
+PASS: mi_stage3_random_forest.py uses pipeline-based stratified CV
+PASS: mi_stage4_extratrees.py declares development training inputs
+PASS: mi_stage4_extratrees.py uses pipeline-based stratified CV
+PASS: Stage 2 implements required baseline/logistic families and AP, AUROC, Brier
+PASS: mi_stage3_random_forest.py selects tree settings by development-only average precision
+PASS: mi_stage4_extratrees.py selects tree settings by development-only average precision
+PASS: stage2_outputs/aggregate_metrics.csv reports all three required targets
+PASS: stage2_outputs/aggregate_metrics.csv reports its required model family
+PASS: stage2_outputs/aggregate_metrics.csv includes AP, AUROC, and Brier summaries
+PASS: stage3_outputs/aggregate_metrics.csv reports all three required targets
+PASS: stage3_outputs/aggregate_metrics.csv reports its required model family
+PASS: stage3_outputs/aggregate_metrics.csv includes AP, AUROC, and Brier summaries
+PASS: stage4_extratrees_outputs/aggregate_metrics.csv reports all three required targets
+PASS: stage4_extratrees_outputs/aggregate_metrics.csv reports its required model family
+PASS: stage4_extratrees_outputs/aggregate_metrics.csv includes AP, AUROC, and Brier summaries
+T05 static/development-only audit checks passed.
+```
+
+## Retained findings / next action
+
+- Current development predictors satisfy the documented exclusion policy.
+- T06 must freeze one model per target using development AUPRC, document any
+  class weighting, fit sigmoid/Platt calibration by development-only
+  cross-fitting, and choose thresholds without test outcomes.
+- T07 remains blocked pending that freeze and explicit user approval.
+- Independent verification of T05 is still required; `TASKS.md` was not
+  updated by this implementation session.

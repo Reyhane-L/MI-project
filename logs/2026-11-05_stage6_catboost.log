@@ -1,0 +1,92 @@
+# Stage 6 — CatBoost development-only experiment run record
+
+Date: 2026-11-05 (Asia/Tehran)
+Task: Stage 6 — CatBoost implementation
+
+## Scope and safeguards
+
+- User requested implementation, execution, and validation of the Stage 6
+  CatBoost experiment described in the pasted instructions.
+- Code: `mi_stage6_catboost.py`; outputs are restricted to the new
+  `stage6_catboost_outputs/` directory. That directory was absent before run.
+- Only Stage 1 development artifacts and prior-stage development CV summaries
+  are inputs. The script has no locked test file paths, directory enumeration,
+  or test-data access.
+- CatBoost 1.2.10 and its dependencies were installed into the existing `.venv`
+  after approval through the command permission gate. No source data or prior
+  stage outputs were replaced.
+- The independent static code review passed after the generated report was
+  updated to list all searched parameter values.
+
+## Experiment design
+
+- Targets: `DEATH_BINARY`, `ZSN`, `FIBR_PREDS` (separate binary models).
+- Outer CV: target-specific shuffled `StratifiedKFold`, 5 folds, seed 42.
+- Inner CV: shuffled 3-fold stratification, seed `42 + outer_fold`.
+- Search: four randomized parameter candidates per outer fold; optimize
+  average precision; serial single-thread CatBoost; no class weights.
+- Native categorical fields: `SEX`, `ant_im`, `lat_im`, `inf_im`, `post_im`.
+  Numeric and ordinal fields remain numeric; numeric missing values are
+  handled natively; categorical missing values receive a fixed sentinel.
+- Threshold metrics use 0.5 for reporting only. No calibration, threshold
+  selection, test evaluation, or test-driven model selection is performed.
+
+## Commands and environment
+
+- `.venv/bin/python -m pip install catboost` — approved; installed CatBoost
+  1.2.10, Graphviz 0.21, and Plotly 7.1.0.
+- `.venv/bin/python -m py_compile mi_stage6_catboost.py` — passed before run.
+- `.venv/bin/python mi_stage6_catboost.py` — first attempt stopped before model
+  fitting; the CatBoost sklearn wrapper mutates its `cat_features` constructor
+  parameter, which violates scikit-learn's clone check in `RandomizedSearchCV`.
+  No output CSV or plot was written. This failure is retained and was not
+  relabeled as a pass.
+- Fixed cloning by passing categorical feature names through `search.fit` as
+  fit metadata. Independent code review approved the change; syntax compilation
+  passed again.
+- `.venv/bin/python mi_stage6_catboost.py` — completed successfully. It
+  checked 450 reference fold-signature values and produced 4,080 OOF rows.
+  All targets completed five folds. No fit/search warning strings were
+  recorded. All nine requested artifacts were written in the new Stage 6
+  directory.
+- A first post-run validation command failed only because its report-text
+  assertion expected the exact phrase `no calibration`; the report states
+  `no probability calibration`. Corrected validation passed. It confirmed
+  output counts/schemas, OOF development ID and label alignment, finite
+  probabilities in [0,1], and threshold labels at 0.5.
+- An ancillary warning-count diagnostic emitted a pandas `Pandas4Warning`
+  because that diagnostic filled float warning columns with a string. It did
+  not affect the experiment or saved artifacts; both model warning columns
+  contain zero non-empty rows.
+- Pre-run `git status --short` showed `AI-HW2-Guide.pdf` modified before this
+  task; it is not part of the Stage 6 changes and will not be altered.
+
+## Execution result
+
+Corrected run: PASS. Independent review of implementation and generated
+outputs passed; the per-target report interpretation was added and checked.
+
+| Target | CatBoost AP mean ± SD | AUROC mean ± SD | Brier mean ± SD |
+|---|---:|---:|---:|
+| `DEATH_BINARY` | 0.733 ± 0.059 | 0.901 ± 0.022 | 0.077 ± 0.009 |
+| `ZSN` | 0.479 ± 0.049 | 0.721 ± 0.048 | 0.150 ± 0.009 |
+| `FIBR_PREDS` | 0.266 ± 0.068 | 0.698 ± 0.041 | 0.086 ± 0.005 |
+
+The CatBoost fold means are strongest among compared models for mortality on
+AP, AUROC, and Brier. For ZSN and FIBR_PREDS, CatBoost does not lead the
+existing model comparison on these primary/secondary metrics. Five folds are
+descriptive and do not establish statistical significance.
+
+## Independent verification
+
+- Code review passed after documenting searched parameter values and fixing
+  sklearn cloning by passing `cat_features` at fit time.
+- Output review passed: all nine explicit artifacts were nonempty; the
+  reviewer checked 15 model-fold rows, 15 tuning rows, 21 comparison rows, and
+  90 paired rows. It validated 4,080 OOF rows against development IDs/labels,
+  finite [0, 1] probabilities, 0.5 threshold predictions, metric consistency,
+  and the plot/report. No fold or search warning strings were recorded.
+- The reviewer confirmed the final report's per-target conclusions match the
+  aggregate means and make no statistical-significance claim.
+- No held-out partition filenames were enumerated, opened, read, or hashed in
+  the Stage 6 implementation, run, or independent review.

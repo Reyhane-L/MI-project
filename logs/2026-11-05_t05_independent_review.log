@@ -1,0 +1,41 @@
+# T05 independent review and remediation record
+
+Date: 2026-11-05 (Asia/Tehran)
+Task: T05 — Requirement and leakage audit
+
+## Initial independent review
+
+- Verdict: FAIL.
+- Finding: `verification.md`, referenced by project instructions, was absent,
+  so the independent verifier lacked the project's prescribed checks.
+- Finding: saved development evidence supports the declared split setup and
+  row count, but cannot establish historical partition provenance without
+  recreating the split or accessing the locked held-out partition. The reviewer
+  correctly left that partition untouched.
+- Process incident: the reviewer inadvertently enumerated the filenames
+  `stage1_outputs/X_test.csv` and `stage1_outputs/y_test.csv` via a broad file
+  listing. It did not open, read, or hash either file. Do not claim the initial
+  review avoided enumeration.
+
+## Remediation
+
+- Added `verification.md` with the independent T05 procedure and held-out
+  access boundary. It requires reporting the historical split-provenance
+  limit, and forbids recreating the split or directory-globbing held-out names.
+- A second read-only review under this procedure was requested.
+
+## Second independent review
+
+- Verdict: PASS.
+- Reproduced `.venv/bin/python mi_stage5_audit_checks.py`; all development-only
+  assertions passed. The verifier confirmed 1,360 aligned development rows,
+  102 predictors, and unique/non-null training IDs.
+- Reviewed the guide map, feature exclusions, death derivation, seed/split
+  declarations, development-only paths, fold-contained pipelines, AP tuning,
+  and required AP/AUROC/Brier summaries. No unresolved material T05 finding.
+- Read aggregate `split_summary.csv` (counts and mortality rates only); no
+  held-out records or labels were accessed.
+- Historical split provenance remains limited. Per `verification.md`, the
+  verifier did not recreate the split or inspect held-out rows.
+- T05 is complete. Next task: T06. T07 remains gated on the T06 freeze and
+  explicit user approval.

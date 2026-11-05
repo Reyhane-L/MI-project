@@ -1,0 +1,4 @@
+target,dev_partition_rows,usable_training_observations,missing_training_labels,positive_cases,negative_cases,positive_prevalence,outer_folds,reference_fold_signature_values_checked
+DEATH_BINARY,1360,1360,0,217,1143,0.15955882352941175,5,150
+ZSN,1360,1360,0,306,1054,0.225,5,150
+FIBR_PREDS,1360,1360,0,135,1225,0.09926470588235294,5,150
