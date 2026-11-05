@@ -1,0 +1,2 @@
+model,oof_rows,positive_cases,oof_average_precision,leave_one_positive_out_mean,leave_one_positive_out_min,leave_one_positive_out_max,max_absolute_change
+CatBoost tuned,1360,135,0.21578131614723683,0.21462626678423305,0.20763565934226896,0.21663583851527812,0.008145656804967871
