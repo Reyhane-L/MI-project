@@ -1,0 +1,248 @@
+{
+  "stage": "T07",
+  "created_utc": "2026-11-06T19:29:24.792048+00:00",
+  "command": [
+    "/Users/rayhaneh/Documents/MI project/.venv/bin/python",
+    "mi_stage11_t07_evaluation.py",
+    "--acknowledge-separate-user-approval"
+  ],
+  "python": "3.14.7",
+  "packages": {
+    "python": "3.14.7",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "scikit-learn": "1.9.1",
+    "scipy": "1.18.1",
+    "joblib": "1.6.0",
+    "matplotlib": "3.11.2",
+    "catboost": "1.2.10"
+  },
+  "test_rows": 340,
+  "target_order": [
+    "DEATH_BINARY",
+    "ZSN",
+    "FIBR_PREDS"
+  ],
+  "thresholds": {
+    "DEATH_BINARY": 0.15333595513662462,
+    "ZSN": 0.16286457867666485,
+    "FIBR_PREDS": 0.07103628966266397
+  },
+  "calibration_method": "Platt (frozen in T06)",
+  "calibration_parameters": {
+    "DEATH_BINARY": {
+      "method": "Platt",
+      "input_transform": "logit(clipped_probability)",
+      "coefficient": 1.383763850146479,
+      "intercept": 0.7168447459104864,
+      "classes": [
+        0,
+        1
+      ],
+      "C": 1000000.0,
+      "solver": "lbfgs",
+      "max_iter": 1000,
+      "random_state": 42
+    },
+    "ZSN": {
+      "method": "Platt",
+      "input_transform": "logit(clipped_probability)",
+      "coefficient": 1.1188566321186695,
+      "intercept": 0.1678527360448639,
+      "classes": [
+        0,
+        1
+      ],
+      "C": 1000000.0,
+      "solver": "lbfgs",
+      "max_iter": 1000,
+      "random_state": 42
+    },
+    "FIBR_PREDS": {
+      "method": "Platt",
+      "input_transform": "logit(clipped_probability)",
+      "coefficient": 1.0244130169235026,
+      "intercept": -0.020040831098505896,
+      "classes": [
+        0,
+        1
+      ],
+      "C": 1000000.0,
+      "solver": "lbfgs",
+      "max_iter": 1000,
+      "random_state": 42
+    }
+  },
+  "models": {
+    "DEATH_BINARY": {
+      "model": "CatBoost tuned",
+      "parameters": {
+        "random_strength": 0.5,
+        "learning_rate": 0.03,
+        "l2_leaf_reg": 7,
+        "iterations": 250,
+        "depth": 6,
+        "border_count": 128,
+        "random_seed": 42,
+        "loss_function": "Logloss",
+        "eval_metric": "PRAUC",
+        "thread_count": 1,
+        "allow_writing_files": false
+      },
+      "tuned_configuration_provenance": {
+        "parameters": {
+          "random_strength": 0.5,
+          "learning_rate": 0.03,
+          "l2_leaf_reg": 7,
+          "iterations": 250,
+          "depth": 6,
+          "border_count": 128
+        },
+        "source": "stage6_catboost_outputs/tuning_results.csv",
+        "selected_outer_fold": 4,
+        "selection_rule": "Hamming medoid of five saved outer-fold best configurations; earliest fold breaks ties"
+      },
+      "categorical_handling": "Stage 6 CatBoostFrameTransformer; SEX and ECG morphology fields converted to stable strings and declared categorical",
+      "preprocessing": "fold-local model pipeline; no imputation required for CatBoost",
+      "class_weight": null,
+      "resampling": null
+    },
+    "ZSN": {
+      "model": "Random Forest tuned",
+      "parameters": {
+        "min_samples_leaf": 3,
+        "max_features": 0.5,
+        "max_depth": 5,
+        "class_weight": null,
+        "n_estimators": 200,
+        "random_state": 42,
+        "n_jobs": 1
+      },
+      "tuned_configuration_provenance": {
+        "parameters": {
+          "min_samples_leaf": 3,
+          "max_features": 0.5,
+          "max_depth": 5,
+          "class_weight": null
+        },
+        "source": "stage3_outputs/tuning_results.csv",
+        "selected_outer_fold": 4,
+        "selection_rule": "Hamming medoid of five saved outer-fold best configurations; earliest fold breaks ties"
+      },
+      "preprocessing": {
+        "continuous": "fold-local median imputation",
+        "ordinal_binary": "fold-local most-frequent imputation",
+        "nominal": "fold-local most-frequent imputation then one-hot with unknown ignored",
+        "scaling": "none"
+      },
+      "class_weight": null,
+      "resampling": null
+    },
+    "FIBR_PREDS": {
+      "model": "Random Forest preliminary",
+      "parameters": {
+        "n_estimators": 200,
+        "random_state": 42,
+        "max_features": "sqrt",
+        "class_weight": null,
+        "n_jobs": 1,
+        "max_depth": null,
+        "min_samples_leaf": 1,
+        "min_samples_split": 2,
+        "bootstrap": true
+      },
+      "preprocessing": {
+        "continuous": "fold-local median imputation",
+        "ordinal_binary": "fold-local most-frequent imputation",
+        "nominal": "fold-local most-frequent imputation then one-hot with unknown ignored",
+        "scaling": "none"
+      },
+      "class_weight": null,
+      "resampling": null
+    }
+  },
+  "bundle_sha256": {
+    "DEATH_BINARY": "160423a365e5fa857c82e690832a78f46f6935041e6455aa7b4fb94416ab2b27",
+    "ZSN": "ac2be052a829c31e098ff78e8f20b91384678bda3b835bedf3fa92c7ef4c9c2d",
+    "FIBR_PREDS": "75ae48e9cc4210b3c51f6bbf493d070185242c750b8af6b0e2d303cdd3ef457f"
+  },
+  "input_sha256": {
+    "stage1_outputs/X_test.csv": "aa2919d1878cead0f96cbebbfb48ed20441f8d8034288f409b3a629ab3b259f7",
+    "stage1_outputs/y_test.csv": "a66aa24b0f589bc5d087ed5831cb6785df5521c9bafb48b44de071ddcf115e0f",
+    "stage1_outputs/test_record_ids.csv": "b2631c6ca1616c49d30cf38fa34bd3f357921b236d7a554439cd4fd4a2eebc62",
+    "stage1_outputs/split_summary.csv": "3bafbdf0151861a508bd65ffbf99849583b58c35f768f41874df3bddd3a1f25f",
+    "mi_stage1_eda.py": "ca66d1f584c437659ed5f5de0f39add8a0c59926b34168b7f632b626357b110d",
+    "stage10_t06_non_tabpfn_outputs/cross_fitted_oof_predictions.csv": "d670d39e1dbb97603bd70f9aa54de94e3c79c8171d6b0b495d76e160557a14a3",
+    "stage10_t06_non_tabpfn_outputs/selected_thresholds.csv": "dbe18fbce4cee2f48b1b01cb23f99e8cbb7b06636247ff833cb88ebd10eb76e0",
+    "stage10_t06_non_tabpfn_outputs/final_model_manifest.json": "1c99c5edf40c758b55e7536d63d54fbf16533f8079f42c6987c4f1b1b3fc4a99"
+  },
+  "input_paths": [
+    "stage1_outputs/X_test.csv",
+    "stage1_outputs/y_test.csv",
+    "stage1_outputs/test_record_ids.csv"
+  ],
+  "development_calibration_source": "stage10_t06_non_tabpfn_outputs/cross_fitted_oof_predictions.csv",
+  "development_calibration_comparison": "T06 outer OOF raw and fold-local Platt probabilities; same development rows; descriptive only.",
+  "split_row_count_source": "stage1_outputs/split_summary.csv",
+  "split_generation_source": "mi_stage1_eda.py",
+  "split_design": {
+    "method": "Stratified train/test split",
+    "test_size": 0.2,
+    "random_state": 42,
+    "stratification_target": "DEATH_BINARY"
+  },
+  "split_alignment_evidence": "Stage 1 source uses one test_idx for X/y/IDs and saved test row count is checked; test CSVs have no shared row-level key/fingerprint, so exact X-to-ID correspondence cannot be independently verified from current artifacts.",
+  "approval_procedure": "Separate explicit user approval under AGENTS.md is required. The CLI flag only acknowledges that approval and cannot independently verify it.",
+  "threshold_source": "stage10_t06_non_tabpfn_outputs/selected_thresholds.csv",
+  "t06_manifest": "stage10_t06_non_tabpfn_outputs/final_model_manifest.json",
+  "evaluation_protocol": "One held-out evaluation only; no model/calibrator/threshold selection or tuning.",
+  "one_time_execution_guard": {
+    "marker": ".stage11_t07_attempt_started",
+    "marker_sha256": "e3fbfbe8f289ad3749e5f463d9357a35c07f4e1d7a0df6997c4e95f60f66dafa",
+    "policy": "The exclusive marker is created before input reads and retained after success or failure. Deleting the output directory does not permit another evaluation."
+  },
+  "test_labels_used_for": "Evaluation metrics, descriptive calibration diagnostics, ranking-metric bootstrap intervals, and decision curve analysis only.",
+  "ranking_metric_confidence_intervals": {
+    "metrics": [
+      "auroc",
+      "auprc_average_precision"
+    ],
+    "method": "percentile paired row bootstrap with replacement",
+    "confidence_level": 0.95,
+    "replicates": 1000,
+    "seed": 42,
+    "single_class_draws": "excluded and counted; no metric estimate for invalid draw"
+  },
+  "decision_curve_analysis": {
+    "threshold_start": 0.05,
+    "threshold_end": 0.4,
+    "threshold_step": 0.01,
+    "strategies": [
+      "model",
+      "treat_all",
+      "treat_none"
+    ],
+    "purpose": "descriptive only; does not select or change the frozen threshold"
+  },
+  "outputs": [
+    "test_metrics.csv",
+    "test_predictions.csv",
+    "test_confusion_matrices.csv",
+    "test_calibration_diagnostics.csv",
+    "test_calibration_bins.csv",
+    "test_metric_confidence_intervals.csv",
+    "test_decision_curve_analysis.csv",
+    "death_binary_reliability.png",
+    "zsn_reliability.png",
+    "fibr_preds_reliability.png",
+    "development_oof_calibration_comparison.csv",
+    "development_death_binary_raw_vs_platt_reliability.png",
+    "development_zsn_raw_vs_platt_reliability.png",
+    "development_fibr_preds_raw_vs_platt_reliability.png",
+    "death_binary_decision_curve.png",
+    "zsn_decision_curve.png",
+    "fibr_preds_decision_curve.png",
+    "t07_evaluation_report.md",
+    "t07_run_manifest.json"
+  ]
+}

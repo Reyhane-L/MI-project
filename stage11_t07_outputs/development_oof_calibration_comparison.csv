@@ -1,0 +1,4 @@
+target,n_development_oof,raw_brier_score,platt_brier_score,raw_log_loss,platt_log_loss,source,calibration_method
+DEATH_BINARY,1360,0.07721082925605331,0.07460367753715548,0.2623508299584636,0.2538988591383516,T06 nested development outer OOF; identical IDs/labels for Raw and Platt,Fold-local development Platt OOF; final calibration remains frozen in T06
+ZSN,1360,0.14735233152782798,0.14690623140507814,0.4661400688610837,0.4647881057907637,T06 nested development outer OOF; identical IDs/labels for Raw and Platt,Fold-local development Platt OOF; final calibration remains frozen in T06
+FIBR_PREDS,1360,0.08285435661764706,0.08341536507923818,0.2924205659918927,0.29454022671998653,T06 nested development outer OOF; identical IDs/labels for Raw and Platt,Fold-local development Platt OOF; final calibration remains frozen in T06

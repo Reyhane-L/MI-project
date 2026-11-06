@@ -1,0 +1,4 @@
+target,ece_10_equal_width,calibration_intercept_joint,calibration_slope_joint,calibration_slope_status,calibration_slope_standard_error,calibration_slope_uncertainty_status,calibration_slope_detail,diagnostic_only
+DEATH_BINARY,0.025568028523030507,-0.036525680900280466,1.010338820173505,available,0.13606999363010858,available,,True
+ZSN,0.04375946291314913,0.7211893582502726,1.4000975179838917,available,0.22299950127766183,available,,True
+FIBR_PREDS,0.02728340535544924,-0.8125963127006465,0.6031925600205378,available,0.20159222452002493,available,,True

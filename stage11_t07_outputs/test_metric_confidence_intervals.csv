@@ -1,0 +1,7 @@
+target,metric,estimate,ci_level,ci_lower,ci_upper,bootstrap_replicates_requested,bootstrap_replicates_valid,bootstrap_replicates_invalid_single_class,bootstrap_seed,interval_method,status
+DEATH_BINARY,auroc,0.8836441336441337,0.95,0.8320977075181382,0.929526186712705,1000,1000,0,42,percentile paired row bootstrap with replacement,available
+DEATH_BINARY,auprc_average_precision,0.7107769718929973,0.95,0.5926991935853769,0.8085868728652739,1000,1000,0,42,percentile paired row bootstrap with replacement,available
+ZSN,auroc,0.7266414141414141,0.95,0.6604642046875567,0.785915294117647,1000,1000,0,42,percentile paired row bootstrap with replacement,available
+ZSN,auprc_average_precision,0.5956609184592658,0.95,0.49962327345643576,0.6814124913980716,1000,1000,0,42,percentile paired row bootstrap with replacement,available
+FIBR_PREDS,auroc,0.6566744730679157,0.95,0.5517594415770447,0.7623555924904474,1000,1000,0,42,percentile paired row bootstrap with replacement,available
+FIBR_PREDS,auprc_average_precision,0.19188724890713224,0.95,0.11802941925433384,0.3217784431289343,1000,1000,0,42,percentile paired row bootstrap with replacement,available
