@@ -1,0 +1,5 @@
+target,model,outer_fold,warning_category,warning_message
+DEATH_BINARY,TabPFN 3.5,full_development,UserWarning,"Running on CPU with more than 1000 samples may be slow.
+Consider using a GPU or the tabpfn-client API: https://github.com/PriorLabs/tabpfn-client"
+ZSN,TabPFN 3.5,full_development,UserWarning,"Running on CPU with more than 1000 samples may be slow.
+Consider using a GPU or the tabpfn-client API: https://github.com/PriorLabs/tabpfn-client"

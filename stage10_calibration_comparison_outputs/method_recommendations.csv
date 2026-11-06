@@ -1,0 +1,4 @@
+target,recommended_method,decision_status,rationale,raw_fold_wins_vs_platt_brier,raw_fold_wins_vs_platt_log_loss,platt_fold_wins_vs_raw_brier,platt_fold_wins_vs_raw_log_loss
+DEATH_BINARY,Platt,Platt recommended; optional methods inconclusive,Platt improves pooled Brier and Log Loss versus raw; optional methods did not meet the prespecified stable-improvement screen.,2,2,3,3
+ZSN,Platt,Platt recommended; optional methods inconclusive,Platt improves pooled Brier and Log Loss versus raw; optional methods did not meet the prespecified stable-improvement screen.,2,2,3,3
+FIBR_PREDS,Platt,inconclusive; Platt default,Differences are mixed or small; retain Platt as the assignment-required default while noting that evidence is inconclusive.,3,3,2,2

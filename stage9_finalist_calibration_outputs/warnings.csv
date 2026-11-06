@@ -1,0 +1,21 @@
+target,model,outer_fold,warnings
+DEATH_BINARY,TabPFN 3.5,1,"UserWarning: Running on CPU with more than 1000 samples may be slow.
+Consider using a GPU or the tabpfn-client API: https://github.com/PriorLabs/tabpfn-client"
+DEATH_BINARY,TabPFN 3.5,2,"UserWarning: Running on CPU with more than 1000 samples may be slow.
+Consider using a GPU or the tabpfn-client API: https://github.com/PriorLabs/tabpfn-client"
+DEATH_BINARY,TabPFN 3.5,3,"UserWarning: Running on CPU with more than 1000 samples may be slow.
+Consider using a GPU or the tabpfn-client API: https://github.com/PriorLabs/tabpfn-client"
+DEATH_BINARY,TabPFN 3.5,4,"UserWarning: Running on CPU with more than 1000 samples may be slow.
+Consider using a GPU or the tabpfn-client API: https://github.com/PriorLabs/tabpfn-client"
+DEATH_BINARY,TabPFN 3.5,5,"UserWarning: Running on CPU with more than 1000 samples may be slow.
+Consider using a GPU or the tabpfn-client API: https://github.com/PriorLabs/tabpfn-client"
+ZSN,TabPFN 3.5,1,"UserWarning: Running on CPU with more than 1000 samples may be slow.
+Consider using a GPU or the tabpfn-client API: https://github.com/PriorLabs/tabpfn-client"
+ZSN,TabPFN 3.5,2,"UserWarning: Running on CPU with more than 1000 samples may be slow.
+Consider using a GPU or the tabpfn-client API: https://github.com/PriorLabs/tabpfn-client"
+ZSN,TabPFN 3.5,3,"UserWarning: Running on CPU with more than 1000 samples may be slow.
+Consider using a GPU or the tabpfn-client API: https://github.com/PriorLabs/tabpfn-client"
+ZSN,TabPFN 3.5,4,"UserWarning: Running on CPU with more than 1000 samples may be slow.
+Consider using a GPU or the tabpfn-client API: https://github.com/PriorLabs/tabpfn-client"
+ZSN,TabPFN 3.5,5,"UserWarning: Running on CPU with more than 1000 samples may be slow.
+Consider using a GPU or the tabpfn-client API: https://github.com/PriorLabs/tabpfn-client"
