@@ -6,7 +6,7 @@ import pandas as pd
 
 
 class FinalModelBundle:
-    """Joblib-safe estimator/calibrator pair with saved TabPFN category handling."""
+    """Joblib-safe estimator/calibrator pair with optional saved category schema."""
 
     def __init__(self, target: str, model_name: str, estimator, calibrator,
                  feature_columns: list[str], category_schema: dict[str, list] | None,
@@ -24,9 +24,7 @@ class FinalModelBundle:
         if missing:
             raise ValueError(f"Inference data missing model features: {sorted(missing)}")
         inputs = X.loc[:, self.feature_columns]
-        if self.model_name == "TabPFN 3.5":
-            if self.category_schema is None:
-                raise RuntimeError("TabPFN bundle lacks its saved native category schema.")
+        if self.category_schema is not None:
             inputs = inputs.copy()
             for column, categories in self.category_schema.items():
                 if column not in inputs:

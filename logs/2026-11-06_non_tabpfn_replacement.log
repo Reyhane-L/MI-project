@@ -1,0 +1,97 @@
+# Non-TabPFN T06/T07 replacement implementation (2026-11-06)
+
+## Selection evidence
+
+Development-only aggregate AP evidence was reviewed across saved Stage 3,
+Stage 4, and Stage 6 outputs. Selected models and means (sample SD):
+
+- DEATH_BINARY: CatBoost tuned, AP 0.732590 (0.059083); strongest saved
+  nonselected alternative was Random Forest tuned, 0.671321 (0.037330).
+- ZSN: Random Forest tuned, AP 0.501775 (0.082878); strongest alternative
+  was Extra Trees tuned, 0.485027 (0.064071).
+- FIBR_PREDS: Random Forest preliminary, AP 0.301054 (0.107908), versus
+  Extra Trees preliminary 0.301365 (0.125206). RF had slightly better
+  development AUROC/Brier/Log Loss; the AP difference is negligible compared
+  with fold variation.
+
+Existing tuned settings differed by outer fold. The replacement freeze chooses
+one existing setting using the Hamming medoid of the five saved outer-fold best
+configurations; ties go to the earliest fold. Death CatBoost uses Stage 6 fold
+4's setting; ZSN RF uses Stage 3 fold 4's setting. No new search is run.
+
+## Implementation and run
+
+- New frozen artifacts are written to `stage10_t06_non_tabpfn_outputs/`; the
+  previous `stage10_t06_outputs/` is preserved.
+- T06 now fits CatBoost tuned / Random Forest tuned / Random Forest preliminary
+  with fresh development-only cross-fitting, Platt calibrators, and newly
+  computed thresholds. No previous calibrator or threshold is loaded.
+- T07 points only at the new directory and requires manifest revision
+  `non_tabpfn_v1`, preventing silent fallback to the old freeze.
+- Active T06/T07 no longer import TabPFN or PyTorch. There is no project
+  requirements/pyproject/Pipfile/environment dependency manifest to edit;
+  existing CatBoost was already present in `.venv`. Historical TabPFN scripts,
+  results, and environment packages were retained for traceability.
+- First approved development-only run attempt failed during input validation
+  because the old TabPFN categorical-field check remained. After correcting
+  the check, the next run exposed missing CatBoost `cat_features` fit metadata.
+  The active pipeline was corrected to declare the same categorical columns as
+  Stage 6, then the run succeeded. These attempts only read development data;
+  neither accessed the held-out partition or invoked T07.
+
+Successful command:
+
+```text
+PYTHONDONTWRITEBYTECODE=1 MPLCONFIGDIR=/private/tmp .venv/bin/python -B mi_stage10_t06_freeze.py --approve-development-only-run
+```
+
+The replacement output directory contains the exact 13 files declared by
+`OUTPUT_FILES`. The outer OOF output contains all three targets and newly
+selected threshold provenance (`pooled five-fold outer Platt OOF`); all three
+thresholds meet sensitivity >= 0.80. Values: DEATH_BINARY 0.1533359551,
+ZSN 0.1628645787, FIBR_PREDS 0.0710362897.
+
+A fresh Python subprocess separately loaded each of the three bundles, predicted
+on the first three `X_train.csv` rows, checked that calibrated probabilities
+match the saved Platt calibrator applied to base probabilities, checked finite
+[0,1] outputs, and confirmed bundle thresholds match the new threshold table.
+All three passed. This check used only development rows.
+
+## Tests and limits
+
+- `PYTHONDONTWRITEBYTECODE=1 MPLCONFIGDIR=/private/tmp .venv/bin/python -B -m unittest discover -s tests -v`: 45 passed.
+- `git diff --check`: passed.
+- No test rows/files were loaded, read, hashed, listed, or evaluated. T07 was
+  not run; explicit separate user approval remains required.
+- Independent review of the implementation and generated development freeze is
+  still required under `AGENTS.md`; this log does not mark T06 complete.
+
+## Independent-review correction (2026-11-06)
+
+The independent reviewer requested explicit supporting metrics for retaining
+Random Forest preliminary on `FIBR_PREDS`, since Extra Trees preliminary had an
+AP mean 0.000311 higher. `load_selection_evidence()` now carries development
+mean AUROC, Brier, and Log Loss alongside AP, and the selection rationale in
+the CSV/report/manifest explains the near tie and trade-off:
+
+- RF: AP 0.301054 (SD 0.107908), AUROC 0.725125, Brier 0.082854, Log Loss
+  0.292421.
+- ET: AP 0.301365 (SD 0.125206), AUROC 0.721708, Brier 0.082892, Log Loss
+  0.295108.
+
+The AP gap is far smaller than either fold SD; RF has slightly better AUROC,
+Brier, and Log Loss (lower is better). Added regression assertions for all
+these rationale claims. To preserve the old T06 freeze, the corrected new
+freeze was built under `.stage10_t06_non_tabpfn_rebuild/`, validated for all 13
+expected files and rationale text, then atomically swapped into
+`stage10_t06_non_tabpfn_outputs/`. `stage10_t06_outputs/` remained untouched.
+
+Checks after regeneration:
+
+- `PYTHONDONTWRITEBYTECODE=1 MPLCONFIGDIR=/private/tmp .venv/bin/python -B -m unittest discover -s tests -v`: 45 passed.
+- `git diff --check`: passed.
+- Separate fresh processes loaded each regenerated bundle, checked its Platt
+  mapping and new threshold, and made bounded development-row predictions:
+  all three passed.
+- No held-out input was accessed and T07 was not run. Independent review of
+  this correction/regenerated output is pending.

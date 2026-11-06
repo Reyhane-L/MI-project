@@ -57,20 +57,20 @@ task does not imply a pass for another.
 
 1. Read `mi_stage10_t06_freeze.py`, `tests/test_stage10_t06_freeze.py`, the
    dated T06 implementation log, and the T06 checklist. Do not invoke the
-   approval-gated model run, run T07, create `stage10_t06_outputs/`, or inspect
+   approval-gated model run, run T07, create `stage10_t06_non_tabpfn_outputs/`, or inspect
    any held-out rows.
 2. Confirm all runtime data paths are explicit Stage 1 development paths:
    `X_train.csv`, `y_train.csv`, `train_record_ids.csv`, and
-   `column_dictionary.csv`, plus the saved development-only Stage 3 and Stage 8
-   aggregate AP summaries used for finalist evidence. Confirm no Stage 9
+   `column_dictionary.csv`, plus the saved development-only Stage 3, Stage 4,
+   and Stage 6 aggregate AP summaries used for finalist evidence. Confirm no Stage 9
    prediction input is consumed and no held-out input is referenced.
-3. Check that the fixed models and parameters match the T06 checklist:
-   TabPFN 3.5 (`random_state=42`, `device="auto"`,
-   `n_preprocessing_jobs=1`, `memory_saving_mode="auto"`) for mortality and
-   `ZSN`; preliminary Random Forest (200 trees, seed 42, `max_features="sqrt"`,
-   no class weighting/resampling, Stage 3 fold-local preprocessing) for
-   `FIBR_PREDS`. Verify native TabPFN categorical categories are learned from
-   each fit partition, and inference uses the saved full-development schema.
+3. Check that the fixed models and parameters match the manifest: tuned
+   CatBoost for `DEATH_BINARY`, tuned Random Forest for `ZSN`, and preliminary
+   Random Forest for `FIBR_PREDS`. Confirm tuned configurations are selected
+   from saved Stage 6/3 outer-fold best configurations by the documented
+   Hamming-medoid rule, with earliest-fold tie breaking, then held fixed across
+   cross-fitting. Confirm the CatBoost and RF preprocessing pipelines are
+   importable and fold-local; no class weighting or resampling is introduced.
 4. Review the nested cross-fitting path: five seed-42 stratified outer folds;
    fresh five-fold stratified inner OOF base predictions from fixed settings
    for each outer training partition; each calibrator fit only on inner OOF
@@ -81,10 +81,10 @@ task does not imply a pass for another.
 5. Run only the focused unit tests:
    `.venv/bin/python -m unittest discover -s tests -p 'test_stage10_t06_freeze.py' -v`.
    Confirm the tests use an injected deterministic estimator / tiny dummy
-   model and do not call TabPFN or fit a Random Forest on project data. Check
+   model and do not fit a project estimator on held-out data. Check
    metric/confusion calculations, the two-part optional-calibrator criterion,
    threshold sensitivity/specificity and tie-breaking, fold isolation, OOF ID
-   alignment, category handling, and joblib bundle prediction.
+   alignment, medoid configuration provenance, and joblib bundle prediction.
 6. If the user later approves and a T06 output set exists, review only the
    explicitly named artifacts listed by `OUTPUT_FILES` in the script. Check
    exact output-set membership, manifest/warnings/config provenance, one
@@ -101,6 +101,26 @@ task does not imply a pass for another.
    meet all T06 criteria and no material finding remains. Record evidence and
    verdict here; implementation status must remain pending until this fresh
    independent review passes. Do not infer approval for T07 from a T06 pass.
+
+### Non-TabPFN finalist replacement review (2026-11-06)
+
+**Overall verdict: PASS — replacement T06 complete.** Independent read-only
+review checked the active implementation and the new development-only freeze.
+
+| Acceptance criterion | Verdict | Evidence |
+|---|---|---|
+| Replacement finalists and fixed tuned configurations | PASS | CatBoost tuned for `DEATH_BINARY`, Random Forest tuned for `ZSN`, and preliminary Random Forest for `FIBR_PREDS`; tuned settings match the Stage 6/3 Hamming medoids and tie rule. |
+| FIBR_PREDS selection trade-off | PASS | Manifest/report state AP means and fold SDs, the 0.000311 AP gap, and RF's slightly better AUROC/Brier/Log Loss; regression tests cover the rationale. |
+| Nested development cross-fitting, fold-local preprocessing, calibration and thresholds | PASS | Source, saved OOF, calibration, and threshold artifacts reviewed; all thresholds use replacement-model pooled outer Platt OOF and meet sensitivity >= 0.80. |
+| Three bundles load and predict in fresh processes | PASS | All three loaded via ordinary `joblib.load` and produced finite probabilities in `[0, 1]` on development rows; outputs matched Platt transforms and threshold metadata matched the replacement table. |
+| Exact output membership and T07 routing | PASS | Replacement directory contains the 13 declared T06 outputs; T07 requires `freeze_revision == "non_tabpfn_v1"` and points only to the new directory. |
+| Tests and active TabPFN/PyTorch assumptions | PASS | Full test suite: 45 passed; no TabPFN/PyTorch imports or inference assumptions remain in active T06/T07 code. Historical experiment scripts/results and shared environment were retained. |
+| Held-out data boundary | PASS | No held-out input was accessed and T07 was not run. |
+
+The initial independent review requested the supporting-metric explanation for
+retaining RF on `FIBR_PREDS`; implementation added the evidence and regression
+test, regenerated only the new T06 output set, and the follow-up review passed.
+This T06 PASS does not authorize T07 or access to held-out data.
 
 ### T06 implementation-only review record (2026-11-05)
 
@@ -322,7 +342,7 @@ without reading or hashing the locked test files.
 | Three binary targets, label definition, IDs and predictor safety | Validates each target, `DEATH_BINARY == (LET_IS > 0)`, unique IDs, forbidden predictors, and equal row counts | Synthetic input-validation tests; Stage 1 source | Exact saved test X-to-ID row alignment cannot be shown by equal counts/unique IDs; no shared row key exists | Keep the limitation explicit. Do not reconstruct the split downstream unless the user separately authorizes an exception to `AGENTS.md` |
 | AUROC, AUPRC/AP, Brier, Brier Skill Score, Log Loss, threshold metrics and accuracy | Computed per target; confusion matrix stores TN/FP/FN/TP; report separates ranking from probability/calibration quality | Synthetic metric test; guide states BSS baseline `pi * (1 - pi)`; implementation uses `1 - Brier / (pi * (1 - pi))` with evaluated-partition prevalence; initial independent reviewer found metric calculations consistent | Actual held-out metric values are unavailable by design | Compute once only after approval; do not use results for selection or tuning |
 | ECE, calibration intercept/slope, uncertainty and reliability diagrams | Equal-width ECE and equal-width/quantile reliability bins are generated; joint logistic slope is diagnostic-only; failed/unstable diagnostic does not discard primary metrics | Synthetic diagnostic test including optimizer failure; initial independent reviewer found calibration calculations consistent | Actual held-out diagnostics/plots | Generate after approval; do not refit calibration or tune from results |
-| Before/after calibration comparison | Uses T06 outer-OOF development raw and fold-local Platt probabilities on the same IDs/labels; emits comparison metrics and development-only plots; does not fit a calibrator | `stage10_t06_outputs/cross_fitted_oof_predictions.csv`; T06 outputs and bundle API; synthetic output test | Final report has not yet been assembled; independent confirmation of OOF provenance | Reviewer checks paired same-row source and labels; later include the plots as development calibration evidence, distinct from test reliability diagrams |
+| Before/after calibration comparison | Uses T06 outer-OOF development raw and fold-local Platt probabilities on the same IDs/labels; emits comparison metrics and development-only plots; does not fit a calibrator | `stage10_t06_non_tabpfn_outputs/cross_fitted_oof_predictions.csv`; T06 outputs and bundle API; synthetic output test | Final report has not yet been assembled; independent confirmation of OOF provenance | Reviewer checks paired same-row source and labels; later include the plots as development calibration evidence, distinct from test reliability diagrams |
 | Run provenance and output safety | Manifest design records bundle/input hashes, frozen parameters/thresholds, versions, split source/configuration, and limitations; staging is no-overwrite | Code and synthetic end-to-end output test; no actual T07 directory created | Hashes and run details can only be recorded during authorized evaluation | Reviewer checks manifest completeness; preserve the one-time output directory and do not add labels to T08 export |
 | Test-file/source-data provenance and alignment audit | No held-out file was opened, hashed, or loaded; no source-data hash was found in existing reviewed records | Stage 1 code applies one `test_idx` to X/y/IDs and writes a test row count to `split_summary.csv`; current CSVs lack a shared row key | Exact X-to-ID row matching and unchanged-source hash are unverified; AGENTS.md prohibits downstream split recreation | Do not perform the requested reconstruction audit under the current gate. A separately approved policy exception would be required before such source/test access |
 | T09 split, preprocessing and comparable CV results | Existing Stage 1–10 scripts/reports contain split, fold-local preprocessing and model-comparison evidence; no final consolidated report exists | Stage reports, run records, and `TASKS.md` | Final guide-mapped report and an independent final cross-check | After T07 approval/evaluation, assemble from existing reports without changing model selection |
@@ -380,3 +400,30 @@ without reading or hashing the locked test files.
   X/y/IDs, but saved test CSVs have no common row key or alignment fingerprint.
   The split was not recreated. After separate explicit approval, run T07 once
   and request independent review of its generated outputs.
+
+## T06 replacement verification checklist (2026-11-06)
+
+This new freeze supersedes the earlier TabPFN-based T06 bundle set for active
+T07. The earlier `stage10_t06_outputs/` is historical and must remain untouched.
+
+1. Review the modified T06/T07 scripts and tests, new log, model-selection
+evidence, and exact output set in `stage10_t06_non_tabpfn_outputs/`.
+2. Verify the selected models: CatBoost tuned for `DEATH_BINARY`, Random
+Forest tuned for `ZSN`, and Random Forest preliminary for `FIBR_PREDS`.
+Recompute selected development AP means/SDs from the saved Stage 3/4/6
+summaries and verify the strongest alternatives and FIBR trade-off.
+3. Recompute the deterministic Hamming medoid from five saved Stage 6
+CatBoost or Stage 3 RF tuned configurations. Verify earliest-fold tie
+breaking, configuration provenance, and no retuning in T06.
+4. Verify the successful T06 run used only Stage 1 development files and
+generated fresh calibration and threshold outputs. Confirm every selected
+threshold cites pooled outer Platt OOF and meets sensitivity >=0.80.
+5. In separate fresh processes, load each bundle and predict only on
+development rows; check target/model metadata, Platt transform, threshold
+agreement, finite bounded probabilities, and ordinary joblib loading.
+6. Run the full unit suite and `git diff --check`. Confirm the active T06/T07
+pipeline does not import TabPFN/PyTorch and T07 rejects an older T06 manifest
+revision. Do not open held-out inputs or run T07.
+
+Implementation verification is pending. Passing this checklist verifies the
+replacement development freeze only; it does not authorize or complete T07.

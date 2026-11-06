@@ -36,7 +36,7 @@ from sklearn.metrics import (
 
 ROOT = Path(__file__).resolve().parent
 STAGE1 = ROOT / "stage1_outputs"
-STAGE10 = ROOT / "stage10_t06_outputs"
+STAGE10 = ROOT / "stage10_t06_non_tabpfn_outputs"
 OUT = ROOT / "stage11_t07_outputs"
 ATTEMPT_MARKER_FILE = ROOT / ".stage11_t07_attempt_started"
 TARGETS = ("DEATH_BINARY", "ZSN", "FIBR_PREDS")
@@ -519,7 +519,7 @@ def _create_attempt_marker(path: Path) -> None:
 
 def _package_versions() -> dict[str, str | None]:
     versions = {"python": platform.python_version()}
-    for package in ("numpy", "pandas", "scikit-learn", "scipy", "joblib", "matplotlib", "tabpfn"):
+    for package in ("numpy", "pandas", "scikit-learn", "scipy", "joblib", "matplotlib", "catboost"):
         try:
             versions[package] = importlib.metadata.version(package)
         except importlib.metadata.PackageNotFoundError:
@@ -752,7 +752,9 @@ def run_evaluation(*, approval_granted: bool = False) -> None:
     _create_attempt_marker(ATTEMPT_MARKER_FILE)
 
     t06_manifest = json.loads(T06_MANIFEST_FILE.read_text(encoding="utf-8"))
-    if t06_manifest.get("stage") != "T06" or tuple(t06_manifest.get("targets", ())) != TARGETS:
+    if (t06_manifest.get("stage") != "T06"
+            or t06_manifest.get("freeze_revision") != "non_tabpfn_v1"
+            or tuple(t06_manifest.get("targets", ())) != TARGETS):
         raise ValueError("T06 manifest stage/targets do not match the frozen evaluation contract.")
     split_summary = pd.read_csv(SPLIT_SUMMARY_FILE)
     thresholds = pd.read_csv(THRESHOLD_FILE)

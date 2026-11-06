@@ -242,6 +242,7 @@ class T07EvaluationTests(unittest.TestCase):
             }
             t06_manifest = {
                 "stage": "T06",
+                "freeze_revision": "non_tabpfn_v1",
                 "targets": list(t07.TARGETS),
                 "models": model_manifest,
                 "calibration_parameters": {

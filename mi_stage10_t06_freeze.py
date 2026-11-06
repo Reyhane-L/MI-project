@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import argparse
 import gc
-import importlib
 from datetime import datetime, timezone
 import importlib.metadata
 import json
@@ -20,6 +19,7 @@ import tempfile
 import warnings
 
 import joblib
+from catboost import CatBoostClassifier
 import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
@@ -42,24 +42,25 @@ from sklearn.preprocessing import OneHotEncoder
 
 from mi_stage10_calibrators import SEED, clipped_probability, make_calibrator
 from mi_stage10_t06_bundle import FinalModelBundle
+from mi_stage6_catboost import CatBoostFrameTransformer
 
 
 ROOT = Path(__file__).resolve().parent
 STAGE1 = ROOT / "stage1_outputs"
 STAGE3 = ROOT / "stage3_outputs"
-STAGE8 = ROOT / "stage8_tabpfn_outputs"
-OUT = ROOT / "stage10_t06_outputs"
+STAGE4 = ROOT / "stage4_extratrees_outputs"
+STAGE6 = ROOT / "stage6_catboost_outputs"
+OUT = ROOT / "stage10_t06_non_tabpfn_outputs"
 TARGETS = ("DEATH_BINARY", "ZSN", "FIBR_PREDS")
 FINALISTS = {
-    "DEATH_BINARY": "TabPFN 3.5",
-    "ZSN": "TabPFN 3.5",
+    "DEATH_BINARY": "CatBoost tuned",
+    "ZSN": "Random Forest tuned",
     "FIBR_PREDS": "Random Forest preliminary",
 }
 CALIBRATION_METHODS = ("Raw", "Platt", "Isotonic", "Beta", "Temperature")
 OUTER_FOLDS = 5
 INNER_FOLDS = 5
 DEFAULT_MIN_SENSITIVITY = 0.80
-TABPFN_CATEGORICAL = ("SEX", "ant_im", "lat_im", "inf_im", "post_im")
 CONTINUOUS = (
     "AGE", "S_AD_KBRIG", "D_AD_KBRIG", "S_AD_ORIT", "D_AD_ORIT",
     "K_BLOOD", "Na_BLOOD", "ALT_BLOOD", "AST_BLOOD", "KFK_BLOOD",
@@ -67,6 +68,7 @@ CONTINUOUS = (
 )
 ORDINAL = ("INF_ANAM", "STENOK_AN", "FK_STENOK", "IBS_POST", "GB", "DLIT_AG", "ZSN_A", "TIME_B_S")
 NOMINAL = ("ant_im", "lat_im", "inf_im", "post_im")
+CATEGORICAL = ("SEX", *NOMINAL)
 FORBIDDEN_PREDICTORS = {
     "ID", "LET_IS", "DEATH_BINARY", "ZSN", "FIBR_PREDS",
     "PREDS_TAH", "JELUD_TAH", "FIBR_JELUD", "A_V_BLOK", "OTEK_LANC",
@@ -91,46 +93,8 @@ OUTPUT_FILES = (
 
 
 def cleanup_model_resources() -> None:
-    """Collect released estimator objects and empty the MPS cache when available."""
+    """Collect released CPU estimator objects."""
     gc.collect()
-    try:
-        torch = importlib.import_module("torch")
-    except ImportError:
-        return
-    mps_backend = getattr(getattr(torch, "backends", None), "mps", None)
-    mps_available = getattr(mps_backend, "is_available", None)
-    empty_cache = getattr(getattr(torch, "mps", None), "empty_cache", None)
-    if callable(mps_available) and mps_available() and callable(empty_cache):
-        try:
-            empty_cache()
-        except (AttributeError, RuntimeError):
-            pass
-
-
-def fold_categories(train: pd.DataFrame, evaluation: pd.DataFrame,
-                    categorical_columns: tuple[str, ...] = TABPFN_CATEGORICAL
-                    ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Apply Stage 8's native pandas categories, learning vocabulary on train only."""
-    train = train.copy()
-    evaluation = evaluation.copy()
-    for column in categorical_columns:
-        if column not in train or column not in evaluation:
-            raise ValueError(f"Native categorical column is missing: {column}")
-        categories = pd.Index(train[column].dropna().unique()).sort_values()
-        train[column] = pd.Categorical(train[column], categories=categories)
-        evaluation[column] = pd.Categorical(evaluation[column], categories=categories)
-    return train, evaluation
-
-
-def final_category_schema(train: pd.DataFrame,
-                          categorical_columns: tuple[str, ...] = TABPFN_CATEGORICAL) -> dict[str, list]:
-    """Save categories learned from the full development training data."""
-    schema = {}
-    for column in categorical_columns:
-        if column not in train:
-            raise ValueError(f"Native categorical column is missing: {column}")
-        schema[column] = pd.Index(train[column].dropna().unique()).sort_values().tolist()
-    return schema
 
 
 def make_rf_pipeline(binary_columns: list[str]) -> Pipeline:
@@ -153,19 +117,60 @@ def make_rf_pipeline(binary_columns: list[str]) -> Pipeline:
     ])
 
 
-def build_estimator(model_name: str, feature_columns: list[str]):
-    if model_name == "TabPFN 3.5":
-        classifier = importlib.import_module("tabpfn").TabPFNClassifier
-        return classifier(
-            random_state=42,
-            device="auto",
-            n_preprocessing_jobs=1,
-            memory_saving_mode="auto",
-            show_progress_bar=False,
+def _fixed_tuned_parameters(target: str) -> dict:
+    """Choose a saved outer-fold best configuration by Hamming medoid.
+
+    This selects one already-tested configuration and does not search or fit.
+    Ties resolve to the earliest outer fold in the saved tuning table.
+    """
+    source = (STAGE6 / "tuning_results.csv" if target == "DEATH_BINARY"
+              else STAGE3 / "tuning_results.csv")
+    model = "CatBoost tuned" if target == "DEATH_BINARY" else "Random Forest tuned"
+    if not source.is_file():
+        raise FileNotFoundError(f"Missing saved development tuning evidence for {target}: {source}")
+    import ast
+    tuning = pd.read_csv(source)
+    rows = tuning.loc[tuning.target == target].sort_values("outer_fold")
+    if len(rows) != 5:
+        raise ValueError(f"Expected five saved outer-fold configurations for {target}/{model}.")
+    configurations = [ast.literal_eval(value) for value in rows.best_parameters]
+    keys = sorted(set().union(*(config.keys() for config in configurations)))
+    distances = [
+        sum(sum(candidate.get(key) != other.get(key) for key in keys)
+            for other in configurations)
+        for candidate in configurations
+    ]
+    selected = int(np.argmin(distances))
+    return {
+        "parameters": configurations[selected],
+        "source": str(source.relative_to(ROOT)),
+        "selected_outer_fold": int(rows.iloc[selected].outer_fold),
+        "selection_rule": "Hamming medoid of five saved outer-fold best configurations; earliest fold breaks ties",
+    }
+
+
+def build_estimator(model_name: str, feature_columns: list[str], target: str | None = None):
+    if model_name == "CatBoost tuned":
+        if target != "DEATH_BINARY":
+            raise ValueError("CatBoost tuned is frozen only for DEATH_BINARY.")
+        params = _fixed_tuned_parameters(target)["parameters"]
+        classifier = CatBoostClassifier(
+            **params, random_seed=SEED, verbose=False, allow_writing_files=False,
+            thread_count=1, loss_function="Logloss", eval_metric="PRAUC",
         )
-    if model_name == "Random Forest preliminary":
+        return Pipeline([
+            ("catboost_frame", CatBoostFrameTransformer()),
+            ("classifier", classifier),
+        ])
+    if model_name in {"Random Forest preliminary", "Random Forest tuned"}:
         typed = set(CONTINUOUS) | set(ORDINAL) | set(NOMINAL)
-        return make_rf_pipeline([column for column in feature_columns if column not in typed])
+        pipeline = make_rf_pipeline([column for column in feature_columns if column not in typed])
+        if model_name == "Random Forest tuned":
+            if target != "ZSN":
+                raise ValueError("Random Forest tuned is frozen only for ZSN.")
+            params = _fixed_tuned_parameters(target)["parameters"]
+            pipeline.set_params(**{f"classifier__{key}": value for key, value in params.items()})
+        return pipeline
     raise ValueError(f"Unsupported T06 finalist: {model_name}")
 
 
@@ -188,11 +193,8 @@ def fit_predict_base(estimator, model_name: str, X_train: pd.DataFrame,
     """Fit on only the supplied training fold and score the untouched evaluation fold."""
     if set(X_train.index).intersection(X_evaluate.index):
         raise ValueError("Training and evaluation row indexes overlap.")
-    if model_name == "TabPFN 3.5":
-        train_native, evaluate_native = fold_categories(X_train, X_evaluate)
-        estimator.fit(train_native, np.asarray(y_train, dtype=int))
-        return _positive_probability(estimator, evaluate_native)
-    estimator.fit(X_train, np.asarray(y_train, dtype=int))
+    fit_parameters = {"classifier__cat_features": list(CATEGORICAL)} if model_name == "CatBoost tuned" else {}
+    estimator.fit(X_train, np.asarray(y_train, dtype=int), **fit_parameters)
     return _positive_probability(estimator, X_evaluate)
 
 
@@ -468,12 +470,15 @@ def select_threshold(y_true: np.ndarray, probability: np.ndarray,
 
 def load_selection_evidence() -> tuple[dict[str, dict], list[Path]]:
     """Load saved development CV summaries used to substantiate the fixed finalists."""
-    paths = [STAGE3 / "aggregate_metrics.csv", STAGE8 / "aggregate_metrics.csv"]
+    paths = [STAGE6 / "model_comparison.csv"]
     missing = [str(path) for path in paths if not path.is_file()]
     if missing:
         raise FileNotFoundError(f"Missing explicit development model summaries: {missing}")
     summaries = pd.concat([pd.read_csv(path) for path in paths], ignore_index=True)
-    required = {"target", "model", "average_precision_mean", "average_precision_std"}
+    required = {
+        "target", "model", "average_precision_mean", "average_precision_std",
+        "auroc_mean", "brier_score_mean", "log_loss_mean",
+    }
     if not required.issubset(summaries.columns):
         raise ValueError("Saved model summaries lack AP means/sample SDs.")
     evidence = {}
@@ -494,9 +499,15 @@ def load_selection_evidence() -> tuple[dict[str, dict], list[Path]]:
                     "model": str(row.model),
                     "mean": float(row.average_precision_mean),
                     "sample_sd": float(row.average_precision_std),
+                    "auroc_mean": float(row.auroc_mean),
+                    "brier_score_mean": float(row.brier_score_mean),
+                    "log_loss_mean": float(row.log_loss_mean),
                 }
                 for row in alternatives.itertuples(index=False)
             ],
+            "selected_auroc_mean": float(selected.auroc_mean),
+            "selected_brier_score_mean": float(selected.brier_score_mean),
+            "selected_log_loss_mean": float(selected.log_loss_mean),
         }
     return evidence, paths
 
@@ -505,22 +516,33 @@ def selection_rationale(target: str, evidence: dict) -> str:
     selected_ap = evidence["selected_mean"]
     alternatives = evidence["alternatives"]
     best = alternatives[0] if alternatives else None
-    if target in {"DEATH_BINARY", "ZSN"}:
-        comparison = (
-            f"TabPFN mean AP {selected_ap:.4f} (fold SD {evidence['selected_sd']:.4f}) "
-            f"exceeded the strongest saved alternative, {best['model']} "
-            f"({best['mean']:.4f} +/- {best['sample_sd']:.4f})."
-            if best else "No saved alternative was available."
+    comparison = (
+        f"Selected model mean AP {selected_ap:.4f} (fold SD "
+        f"{evidence['selected_sd']:.4f}); strongest saved alternative was "
+        f"{best['model']} at {best['mean']:.4f} (fold SD {best['sample_sd']:.4f})."
+        if best else "No saved alternative was available."
+    )
+    if target == "FIBR_PREDS":
+        extra_trees = next(
+            (row for row in alternatives if row["model"] == "Extra Trees preliminary"),
+            None,
         )
-    else:
+        if extra_trees is None:
+            raise ValueError("FIBR_PREDS rationale requires saved Extra Trees preliminary evidence.")
+        ap_gap = abs(evidence["selected_mean"] - extra_trees["mean"])
         comparison = (
-            f"The user-specified preliminary Random Forest mean AP was "
-            f"{selected_ap:.4f} (fold SD {evidence['selected_sd']:.4f}); "
-            f"the highest saved alternative was {best['model']} at "
-            f"{best['mean']:.4f} (fold SD {best['sample_sd']:.4f}). "
-            "This near tie is descriptive; the supplied finalist is retained "
-            "without retuning."
-            if best else "No saved alternative was available."
+            f"Random Forest preliminary mean AP {evidence['selected_mean']:.6f} "
+            f"(fold SD {evidence['selected_sd']:.6f}) was essentially tied with "
+            f"Extra Trees preliminary at {extra_trees['mean']:.6f} "
+            f"(fold SD {extra_trees['sample_sd']:.6f}); the AP gap was "
+            f"{ap_gap:.6f}, far smaller than either fold SD. Random Forest was "
+            f"retained as the more balanced candidate: mean AUROC "
+            f"{evidence['selected_auroc_mean']:.6f} versus "
+            f"{extra_trees['auroc_mean']:.6f}, mean Brier "
+            f"{evidence['selected_brier_score_mean']:.6f} versus "
+            f"{extra_trees['brier_score_mean']:.6f}, and mean Log Loss "
+            f"{evidence['selected_log_loss_mean']:.6f} versus "
+            f"{extra_trees['log_loss_mean']:.6f} (lower is better)."
         )
     return comparison + " Five-fold estimates are descriptive, not significance tests."
 
@@ -640,7 +662,7 @@ def full_development_oof_and_model(
         warning_sink.extend(_warning_entries(
             caught, target, model_name, 0, "Platt", "final_calibrator",
         ))
-    category_schema = final_category_schema(X) if model_name == "TabPFN 3.5" else None
+    category_schema = None
     parameters = calibration_parameters(calibrator)
     _fit_and_stage_final_bundle(
         X=X,
@@ -692,13 +714,11 @@ def _fit_and_stage_final_bundle(
     estimator = estimator_builder(model_name, list(X.columns))
     bundle = None
     try:
-        if model_name == "TabPFN 3.5":
-            train_native, _ = fold_categories(X, X.iloc[:0])
-        else:
-            train_native = X
+        train_native = X
         with warnings.catch_warnings(record=True) as caught:
             warnings.simplefilter("always")
-            estimator.fit(train_native, labels)
+            fit_parameters = {"classifier__cat_features": list(CATEGORICAL)} if model_name == "CatBoost tuned" else {}
+            estimator.fit(train_native, labels, **fit_parameters)
         if warning_sink is not None:
             warning_sink.extend(_warning_entries(
                 caught, target, model_name, 0, "Platt", "final_model",
@@ -737,7 +757,7 @@ def _fit_and_stage_final_bundle(
 
 def _package_versions() -> dict[str, str | None]:
     result = {"python": platform.python_version()}
-    for package in ("numpy", "pandas", "scikit-learn", "scipy", "joblib", "tabpfn", "matplotlib"):
+    for package in ("numpy", "pandas", "scikit-learn", "scipy", "joblib", "catboost", "matplotlib"):
         try:
             result[package] = importlib.metadata.version(package)
         except importlib.metadata.PackageNotFoundError:
@@ -762,8 +782,8 @@ def _validate_development_inputs(X: pd.DataFrame, y_all: pd.DataFrame,
     ].tolist()
     if X.columns.tolist() != expected:
         raise ValueError("Development predictors do not match the admission-time dictionary.")
-    if set(TABPFN_CATEGORICAL).difference(X.columns):
-        raise ValueError("Stage 8 native categorical predictors are missing.")
+    if {"SEX", *NOMINAL}.difference(X.columns):
+        raise ValueError("Required CatBoost nominal predictors are missing.")
     if set(CONTINUOUS + ORDINAL + NOMINAL).difference(X.columns):
         raise ValueError("Stage 3 preliminary forest feature groups are incomplete.")
 
@@ -851,9 +871,13 @@ def _run_crossfit_staged(
         X_target = X_all.loc[y_target.index].copy()
         ids = ids_all.loc[y_target.index, id_column].to_numpy()
         model_name = FINALISTS[target]
+        target_builder = (
+            (lambda name, columns, target=target: build_estimator(name, columns, target))
+            if estimator_builder is build_estimator else estimator_builder
+        )
         outer = crossfit_target(
             X_target, y_target.to_numpy(), ids, target, model_name,
-            estimator_builder, warning_sink=warnings_found,
+            target_builder, warning_sink=warnings_found,
         )
         threshold = select_threshold(
             outer.true_label.to_numpy(), outer.platt_probability.to_numpy(),
@@ -867,7 +891,7 @@ def _run_crossfit_staged(
             **threshold,
         })
         final_scores, final_folds, parameters = full_development_oof_and_model(
-            X_target, y_target.to_numpy(), model_name, estimator_builder,
+            X_target, y_target.to_numpy(), model_name, target_builder,
             bundle_path=stage_out / f"{target.lower()}_bundle.joblib",
             threshold=threshold["threshold"],
             threshold_status=threshold["status"],
@@ -909,6 +933,7 @@ def _run_crossfit_staged(
     _write_reliability_plots(oof, stage_out)
     manifest = {
         "stage": "T06",
+        "freeze_revision": "non_tabpfn_v1",
         "date_utc": datetime.now(timezone.utc).isoformat(),
         "development_inputs": [str(path.relative_to(ROOT)) for path in inputs],
         "model_selection_development_summaries": [
@@ -959,25 +984,30 @@ def _run_crossfit_staged(
 
 
 def model_configurations() -> dict:
+    death_tuned = _fixed_tuned_parameters("DEATH_BINARY")
+    zsn_tuned = _fixed_tuned_parameters("ZSN")
     return {
         "DEATH_BINARY": {
-            "model": "TabPFN 3.5",
-            "parameters": {
-                "random_state": 42, "device": "auto", "n_preprocessing_jobs": 1,
-                "memory_saving_mode": "auto", "show_progress_bar": False,
-            },
-            "native_categorical_columns": list(TABPFN_CATEGORICAL),
-            "category_vocabulary": "learned from each model's training partition only",
+            "model": "CatBoost tuned",
+            "parameters": {**death_tuned["parameters"], "random_seed": SEED,
+                            "loss_function": "Logloss", "eval_metric": "PRAUC",
+                            "thread_count": 1, "allow_writing_files": False},
+            "tuned_configuration_provenance": death_tuned,
+            "categorical_handling": "Stage 6 CatBoostFrameTransformer; SEX and ECG morphology fields converted to stable strings and declared categorical",
+            "preprocessing": "fold-local model pipeline; no imputation required for CatBoost",
             "class_weight": None, "resampling": None,
         },
         "ZSN": {
-            "model": "TabPFN 3.5",
-            "parameters": {
-                "random_state": 42, "device": "auto", "n_preprocessing_jobs": 1,
-                "memory_saving_mode": "auto", "show_progress_bar": False,
+            "model": "Random Forest tuned",
+            "parameters": {**zsn_tuned["parameters"], "n_estimators": 200,
+                            "random_state": SEED, "n_jobs": 1},
+            "tuned_configuration_provenance": zsn_tuned,
+            "preprocessing": {
+                "continuous": "fold-local median imputation",
+                "ordinal_binary": "fold-local most-frequent imputation",
+                "nominal": "fold-local most-frequent imputation then one-hot with unknown ignored",
+                "scaling": "none",
             },
-            "native_categorical_columns": list(TABPFN_CATEGORICAL),
-            "category_vocabulary": "learned from each model's training partition only",
             "class_weight": None, "resampling": None,
         },
         "FIBR_PREDS": {

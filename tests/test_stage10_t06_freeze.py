@@ -6,7 +6,6 @@ import sys
 import unittest
 import weakref
 from pathlib import Path
-from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 import numpy as np
@@ -18,11 +17,12 @@ from mi_stage10_t06_freeze import (
     FinalModelBundle,
     OUTPUT_FILES,
     cleanup_model_resources,
+    build_estimator,
     compare_methods,
     crossfit_target,
-    fold_categories,
     full_development_oof_and_model,
     load_selection_evidence,
+    model_configurations,
     optional_method_qualification,
     quality_metrics,
     selection_rationale,
@@ -295,29 +295,10 @@ class T06FreezeTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     quality_metrics(np.array([0, 1]), probability)
 
-    def test_tabpfn_category_vocabulary_comes_only_from_fit_partition(self):
-        train = pd.DataFrame({"SEX": [1, 2], "ant_im": [0, 1], "lat_im": [0, 1],
-                              "inf_im": [0, 1], "post_im": [0, 1]})
-        evaluate = pd.DataFrame({"SEX": [3], "ant_im": [2], "lat_im": [2],
-                                 "inf_im": [2], "post_im": [2]})
-        trained, scored = fold_categories(train, evaluate)
-        self.assertNotIn(3, trained["SEX"].cat.categories)
-        self.assertTrue(scored["SEX"].isna().all())
-
-    def test_cleanup_collects_garbage_and_clears_available_mps_cache(self):
-        empty_cache = Mock()
-        torch = SimpleNamespace(
-            backends=SimpleNamespace(
-                mps=SimpleNamespace(is_available=lambda: True),
-            ),
-            mps=SimpleNamespace(empty_cache=empty_cache),
-        )
-        with patch("mi_stage10_t06_freeze.gc.collect") as collect, patch(
-            "mi_stage10_t06_freeze.importlib.import_module", return_value=torch,
-        ):
+    def test_cleanup_collects_garbage_without_loading_optional_accelerator_runtime(self):
+        with patch("mi_stage10_t06_freeze.gc.collect") as collect:
             cleanup_model_resources()
         collect.assert_called_once_with()
-        empty_cache.assert_called_once_with()
 
     def test_nested_crossfit_isolates_fit_rows_and_aligns_one_oof_row_per_id(self):
         n = 50
@@ -380,13 +361,7 @@ class T06FreezeTests(unittest.TestCase):
             self.assertEqual(compress, 3)
             dumped_refs.append(weakref.ref(bundle.estimator))
 
-        unavailable_mps = SimpleNamespace(
-            backends=SimpleNamespace(mps=SimpleNamespace(is_available=lambda: False)),
-            mps=SimpleNamespace(),
-        )
-        with patch("mi_stage10_t06_freeze.joblib.dump", new=record_dump), patch(
-            "mi_stage10_t06_freeze.importlib.import_module", return_value=unavailable_mps,
-        ):
+        with patch("mi_stage10_t06_freeze.joblib.dump", new=record_dump):
             for target in ("T1", "T2"):
                 scores, folds, parameters = full_development_oof_and_model(
                     X, labels, "Injected lifecycle estimator", builder,
@@ -482,25 +457,65 @@ class T06FreezeTests(unittest.TestCase):
         rationale = selection_rationale("FIBR_PREDS", {
             "selected_mean": 0.3011,
             "selected_sd": 0.1079,
+            "selected_auroc_mean": 0.7251,
+            "selected_brier_score_mean": 0.082854,
+            "selected_log_loss_mean": 0.292421,
             "alternatives": [{
                 "model": "Extra Trees preliminary",
                 "mean": 0.3014,
                 "sample_sd": 0.1252,
+                "auroc_mean": 0.7217,
+                "brier_score_mean": 0.082892,
+                "log_loss_mean": 0.295108,
             }],
         })
-        self.assertIn("highest saved alternative", rationale)
-        self.assertIn("without retuning", rationale)
+        self.assertIn("essentially tied", rationale)
+        self.assertIn("AP gap was 0.000300", rationale)
+        self.assertIn("more balanced candidate", rationale)
+        self.assertIn("AUROC 0.725100 versus 0.721700", rationale)
+        self.assertIn("Brier 0.082854 versus 0.082892", rationale)
+        self.assertIn("Log Loss 0.292421 versus 0.295108", rationale)
+        self.assertIn("descriptive, not significance tests", rationale)
 
     def test_saved_development_ap_summaries_support_all_fixed_finalists(self):
         evidence, paths = load_selection_evidence()
-        self.assertEqual(len(paths), 2)
+        self.assertEqual(len(paths), 1)
         self.assertEqual(set(evidence), {"DEATH_BINARY", "ZSN", "FIBR_PREDS"})
-        self.assertAlmostEqual(evidence["DEATH_BINARY"]["selected_mean"], 0.7499278, places=6)
-        self.assertAlmostEqual(evidence["ZSN"]["selected_mean"], 0.5194422, places=6)
+        self.assertAlmostEqual(evidence["DEATH_BINARY"]["selected_mean"], 0.732590, places=6)
+        self.assertAlmostEqual(evidence["ZSN"]["selected_mean"], 0.501775, places=6)
         self.assertAlmostEqual(evidence["FIBR_PREDS"]["selected_mean"], 0.3010538, places=6)
+        self.assertAlmostEqual(evidence["FIBR_PREDS"]["selected_auroc_mean"], 0.725125, places=6)
+        self.assertAlmostEqual(evidence["FIBR_PREDS"]["selected_brier_score_mean"], 0.082854, places=6)
+        self.assertAlmostEqual(evidence["FIBR_PREDS"]["selected_log_loss_mean"], 0.292421, places=6)
         self.assertEqual(
             evidence["FIBR_PREDS"]["alternatives"][0]["model"],
             "Extra Trees preliminary",
+        )
+        self.assertAlmostEqual(evidence["FIBR_PREDS"]["alternatives"][0]["auroc_mean"], 0.721708, places=6)
+        self.assertAlmostEqual(evidence["FIBR_PREDS"]["alternatives"][0]["brier_score_mean"], 0.082892, places=6)
+        self.assertAlmostEqual(evidence["FIBR_PREDS"]["alternatives"][0]["log_loss_mean"], 0.295108, places=6)
+
+    def test_tuned_finalist_configurations_are_saved_fold_medoids(self):
+        configurations = model_configurations()
+        death = configurations["DEATH_BINARY"]
+        zsn = configurations["ZSN"]
+        self.assertEqual(death["model"], "CatBoost tuned")
+        self.assertEqual(zsn["model"], "Random Forest tuned")
+        self.assertEqual(death["tuned_configuration_provenance"]["selected_outer_fold"], 4)
+        self.assertEqual(zsn["tuned_configuration_provenance"]["selected_outer_fold"], 4)
+        self.assertEqual(death["tuned_configuration_provenance"]["source"],
+                         "stage6_catboost_outputs/tuning_results.csv")
+        self.assertEqual(zsn["tuned_configuration_provenance"]["source"],
+                         "stage3_outputs/tuning_results.csv")
+        self.assertEqual(
+            build_estimator("CatBoost tuned", ["SEX", "ant_im"], "DEATH_BINARY")
+            .named_steps["classifier"].get_params()["iterations"],
+            death["parameters"]["iterations"],
+        )
+        self.assertEqual(
+            build_estimator("Random Forest tuned", ["AGE", "SEX"], "ZSN")
+            .named_steps["classifier"].get_params()["min_samples_leaf"],
+            zsn["parameters"]["min_samples_leaf"],
         )
 
 

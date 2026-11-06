@@ -293,3 +293,49 @@ T06 is complete. Current active task: **T07 implementation readiness only**. T07
   run log. The initial reviewer found one medium retry-guard issue; the
   durable-marker correction received a targeted independent PASS. No held-out
   evaluation is authorized or performed.
+
+### Non-TabPFN finalist replacement (2026-11-06; independent review passed)
+
+- Replaced the active T06 finalist mapping with CatBoost tuned for
+  `DEATH_BINARY`, Random Forest tuned for `ZSN`, and preliminary Random Forest
+  for `FIBR_PREDS`, based on existing development-only Stage 3/4/6 results.
+  Tuned settings are fixed from saved outer-fold choices via a deterministic
+  Hamming-medoid rule; the rule and source folds are recorded in the new T06
+  manifest and selection CSV.
+- Wrote a new development-only T06 freeze to
+  `stage10_t06_non_tabpfn_outputs/`, preserving the prior
+  `stage10_t06_outputs/`. Fresh Platt calibrators and thresholds were generated
+  for all targets. The thresholds are sourced from pooled outer Platt OOF and
+  each satisfies the 0.80 sensitivity constraint.
+- T07 now reads only the replacement output directory and requires manifest
+  revision `non_tabpfn_v1`. Active T06/T07 imports no TabPFN/PyTorch runtime;
+  historical experiments and the shared environment were retained. No
+  dependency manifest exists in the project.
+- The full suite passed (45 tests). Fresh subprocesses loaded each replacement
+  bundle and confirmed predictions on three development rows are finite,
+  bounded, and equal to the saved Platt transform of base probabilities;
+  threshold metadata matched the new threshold table. Exact command, prior
+  run errors/corrections, and outputs are in
+  `logs/2026-11-06_non_tabpfn_replacement.log`.
+- Independent implementation/output review passed after one targeted
+  documentation correction. No held-out inputs were accessed and T07 was not
+  run; T07 remains approval-gated.
+
+### FIBR_PREDS selection-rationale review correction (2026-11-06)
+
+- Independent review found the first replacement rationale omitted supporting
+  metrics for retaining preliminary Random Forest despite Extra Trees having
+  a 0.000311 higher mean AP. The rationale, manifest, selection CSV, and report
+  now state that RF's AP 0.301054 (SD 0.107908) and ET's 0.301365 (SD
+  0.125206) are effectively tied relative to fold variation, while RF has
+  slightly better mean AUROC (0.725125 vs 0.721708), Brier (0.082854 vs
+  0.082892), and Log Loss (0.292421 vs 0.295108).
+- Added a regression test for this explanation and evidence. Rebuilt only
+  `stage10_t06_non_tabpfn_outputs/` after validating a complete staged set;
+  original `stage10_t06_outputs/` remains untouched.
+- Full suite passed again (45); all three regenerated bundles passed fresh
+  subprocess load, development-row prediction, Platt mapping, and threshold
+  metadata checks. The correction is logged in
+  `logs/2026-11-06_non_tabpfn_replacement.log`. Independent review of the
+  corrected rationale and regenerated freeze passed; T07 remains unrun and
+  approval-gated.
