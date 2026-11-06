@@ -2,7 +2,7 @@
 
 ## Current stage
 
-Harness created. Existing implementation covers Stages 1–4; the final calibrated model, held-out evaluation, submission probability CSV, and complete assignment report remain to be completed. Current active task: **T06 — freeze and calibrate final models using development data only**.
+T06 is complete. Current active task: **T07 implementation readiness only**. T07 has not been run; the held-out partition remains locked pending separate explicit user approval under `AGENTS.md`. T06 and T07 source/test reviews pass; actual held-out outputs still require an approved one-time run and separate output review. T08 and T09 remain pending.
 
 ## Completed
 
@@ -13,9 +13,9 @@ Harness created. Existing implementation covers Stages 1–4; the final calibrat
 
 ## Current blockers
 
-- Final model and calibration choices have not been frozen.
-- The held-out test partition remains locked. Do not open it until T06 is documented and the user approves the final evaluation.
-- No test suite or committed dependency manifest was found during harness setup.
+- T07 and any test-partition inspection remain blocked until explicit user approval. Do not open test files before approval.
+- Exact per-row X/y/ID alignment cannot be proven from the existing CSVs; Stage 1 source applies one `test_idx` to all three artifacts, and the limitation is documented.
+- No committed dependency manifest is present; the existing `.venv` is used for the focused test suite.
 
 ## T05 independent verification (2026-11-05, Asia/Tehran)
 
@@ -244,3 +244,52 @@ Harness created. Existing implementation covers Stages 1–4; the final calibrat
   to open the locked test partition.
 
 - Harness creation: read-only inspection found a clean Git worktree and no prior harness files. No implementation code or existing output was changed. Independent verification of this harness has not yet been performed.
+
+### T07 implementation-only handoff (2026-11-06)
+
+- Added the approval-gated evaluator and focused synthetic tests. The final
+  focused suite passed 11 tests, including a temporary synthetic end-to-end
+  output run, failure-tolerant calibration-slope diagnostics, Brier Skill
+  Score, saved split row-count validation, and no-access checks without the
+  approval acknowledgement. AST parsing and whitespace checks passed.
+- The guide's approval process was reviewed. The CLI flag is only an
+  acknowledgement and does not establish approval. T07 was not run and no
+  held-out artifact was opened, hashed, loaded, or enumerated; no
+  `stage11_t07_outputs/` directory was created.
+- Stage 1 source and `split_summary.csv` support split provenance and test
+  count checks, but the existing X/y/ID CSVs have no shared row-level key or
+  fingerprint. Exact X-to-ID correspondence cannot be proven from current
+  artifacts without additional approved evidence. This limitation is recorded
+  in `verification.md` and the T07 run manifest design.
+- At this implementation-only checkpoint, independent review was pending
+  because the code-review agent failed to start due model-routing
+  unavailability. The later readiness audit records the successful review
+  attempt and targeted follow-up. T07 remains unchecked/incomplete and
+  approval-gated. See `logs/2026-11-06_t07_implementation.log`.
+
+### T07 readiness audit addendum (2026-11-06)
+
+- Rechecked `AGENTS.md`, `TASKS.md`, this handoff, `verification.md`, the T07
+  implementation and tests, Stage 1 split-generation code, the T06 bundle API,
+  and relevant `AI-HW2-Guide.pdf` requirements. The guide specifies the Brier
+  Skill Score baseline `pi * (1 - pi)` and reliability diagrams; the
+  submission requirements also call for before/after calibration diagrams.
+- Confirmed Stage 1 applies one `test_idx` to predictors, outcomes, and IDs.
+  No split reconstruction or source-data hash was performed: downstream split
+  recreation is prohibited, and no prior source-data hash is recorded. Saved
+  CSVs have no shared row-level key, so exact X-to-ID alignment remains
+  unverified.
+- Confirmed T06 development outer-OOF raw and fold-local Platt probabilities
+  provide the safer before/after calibration comparison on the same
+  development observations. The T06 bundle also exposes base and calibrated
+  probability APIs. No new calibrator is fitted.
+- Added an exclusive attempt marker so an approved run cannot be retried after
+  input access begins; the marker remains after success or failure, even if
+  outputs are removed. Synthetic tests use a temporary marker and verify
+  retry refusal after output deletion. No held-out input was read, hashed, or
+  enumerated, no bundle was loaded, and no T07 output was created.
+- T07 and T09 remain incomplete. The acceptance checklist, validation results,
+  and independent-review status are recorded in `verification.md` and the T07
+  run log. The initial reviewer found one medium retry-guard issue; the
+  durable-marker correction received a targeted independent PASS. No held-out
+  evaluation is authorized or performed.

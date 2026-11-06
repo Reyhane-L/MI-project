@@ -28,6 +28,8 @@ from mi_stage10_t06_freeze import (
     selection_rationale,
     select_threshold,
     summarize_method_comparison,
+    _validate_outcome_values,
+    _validated_binary_labels,
 )
 from mi_stage10_calibrators import PlattCalibrator
 
@@ -86,6 +88,71 @@ def fixed_comparison(qualified=True):
 
 
 class T06FreezeTests(unittest.TestCase):
+    def test_development_outcomes_reject_fractional_and_nonbinary_values(self):
+        valid = pd.DataFrame({
+            "LET_IS": [0, 1, 2, 0],
+            "DEATH_BINARY": [0, 1, 1, 0],
+            "ZSN": [0, 1, 0, 1],
+            "FIBR_PREDS": [1, 0, 1, 0],
+        })
+        _validate_outcome_values(valid)
+
+        # Missing outcomes remain eligible for the established per-target dropna.
+        with_missing = valid.copy()
+        with_missing["ZSN"] = with_missing["ZSN"].astype(float)
+        with_missing.loc[3, "ZSN"] = np.nan
+        _validate_outcome_values(with_missing)
+
+        for target, invalid_value in (
+            ("ZSN", 0.5),
+            ("FIBR_PREDS", 2),
+            ("DEATH_BINARY", -1),
+        ):
+            with self.subTest(target=target, invalid_value=invalid_value):
+                invalid = valid.copy()
+                invalid[target] = invalid[target].astype(float)
+                invalid.loc[0, target] = invalid_value
+                with self.assertRaisesRegex(ValueError, "finite exact binary"):
+                    _validate_outcome_values(invalid)
+
+        with self.assertRaisesRegex(ValueError, "finite exact binary"):
+            _validated_binary_labels(np.array([0, 0.5, 1]), "ZSN")
+
+    def test_development_mortality_label_must_match_let_is_definition(self):
+        y = pd.DataFrame({
+            "LET_IS": [0, 1, 2, 0],
+            "DEATH_BINARY": [0, 1, 1, 0],
+            "ZSN": [0, 1, 0, 1],
+            "FIBR_PREDS": [1, 0, 1, 0],
+        })
+        with self.assertRaisesRegex(ValueError, "LET_IS"):
+            _validate_outcome_values(y.drop(columns="LET_IS"))
+
+        mismatch = y.copy()
+        mismatch.loc[1, "DEATH_BINARY"] = 0
+        with self.assertRaisesRegex(ValueError, "LET_IS > 0"):
+            _validate_outcome_values(mismatch)
+
+        malformed_let_is = y.astype(float)
+        malformed_let_is.loc[0, "LET_IS"] = np.inf
+        with self.assertRaisesRegex(ValueError, "LET_IS labels must be finite"):
+            _validate_outcome_values(malformed_let_is)
+
+        missingness_mismatch = y.astype(float)
+        missingness_mismatch.loc[0, "LET_IS"] = np.nan
+        with self.assertRaisesRegex(ValueError, "missingness must match"):
+            _validate_outcome_values(missingness_mismatch)
+
+    def test_crossfit_rejects_fractional_labels_before_integer_conversion_or_fit(self):
+        builder = Mock(side_effect=AssertionError("Invalid labels must fail before fitting."))
+        X = pd.DataFrame({"score": [0, 1, 2, 3]})
+        with self.assertRaisesRegex(ValueError, "finite exact binary"):
+            crossfit_target(
+                X, np.array([0, 1, 0.5, 1]), np.array(["a", "b", "c", "d"]),
+                "ZSN", "unused", builder,
+            )
+        builder.assert_not_called()
+
     def test_quality_metrics_include_probability_quality_and_confusion_counts(self):
         result = quality_metrics(np.array([0, 0, 1, 1]), np.array([0.1, 0.7, 0.6, 0.9]))
         self.assertAlmostEqual(result["brier_score"], 0.1675)

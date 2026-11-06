@@ -276,3 +276,107 @@ explicit user approval.
    memory/runtime evidence, limitations, and no significance claims.
 7. Return a separate PASS/FAIL for Stage 8. Do not change implementation
    outputs or task status during independent verification.
+
+## T07 implementation-only status (2026-11-06)
+
+- The approval-gated evaluator and synthetic-only tests are present in
+  `mi_stage11_t07_evaluation.py` and
+  `tests/test_stage11_t07_evaluation.py`. The focused command
+  `PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -B -m unittest discover -s tests -p 'test_stage11_t07_evaluation.py' -v`
+  passed 11 tests. AST parsing and `git diff --check` passed. A no-flag CLI
+  invocation exited with status 2 before input/bundle access; no T07 output
+  directory was created.
+- The synthetic end-to-end test uses temporary synthetic CSVs and mocked
+  bundles only. No locked-test file was opened, hashed, loaded, or enumerated;
+  no frozen bundle was loaded, and T07 was not run.
+- The assignment guide's Brier Skill Score requirement is included. Ranking
+  metrics (AUROC/AP) are separated from probability/calibration metrics in
+  the report. Calibration-slope optimizer failure is recorded as unavailable
+  without aborting primary evaluation metrics.
+- The evaluator records the Stage 1 split source/hash and checks the held-out
+  row count against `split_summary.csv` at an authorized run. Stage 1 builds
+  X, y, and IDs using the same `test_idx`, but the existing CSVs contain no
+  common per-row key/fingerprint; therefore exact X-to-ID correspondence
+  cannot be independently established from those files alone. This limitation
+  must be considered in independent verification; the split is not recreated.
+- The explicit approval procedure in `AGENTS.md` was reviewed. The CLI
+  acknowledgement flag does not independently establish approval; a separate
+  explicit user approval remains required before any held-out access.
+- At this implementation-only checkpoint, independent review was pending
+  because the code-review agent failed to start. The later readiness audit
+  records the successful review attempt and targeted follow-up below. T07
+  remains incomplete and approval-gated; no test evaluation or T08 work is
+  authorized by this implementation record.
+
+## T07/T09 final-readiness checklist (2026-11-06)
+
+This is an implementation-readiness audit, not a held-out evaluation or a
+PASS for T07 acceptance. The independent implementation-review result and its
+targeted follow-up are recorded below. Evidence listed here was inspected
+without reading or hashing the locked test files.
+
+| Requirement | Current implementation | Evidence available | Missing work | Proposed action |
+|---|---|---|---|---|
+| T07 authorization before test access; one evaluation only | CLI flag acknowledges separate approval but does not grant it; runner checks approval before path access; durable exclusive marker blocks retries after any attempt, including after output deletion | `AGENTS.md`; approval-refusal and marker synthetic tests; runner sequence; no T07 outputs or marker exist | Explicit approval is not present; failure after starting an approved attempt will intentionally require a new decision rather than retry | Obtain a separate explicit approval only after independent review; retain the marker and outputs unless a separately approved action changes that policy |
+| Frozen T06 models, Platt calibrators, thresholds, features and ordering | Runner checks target/model identity, frozen Platt method and parameters, threshold metadata, and exact feature names/order; prediction path calls inference only | `mi_stage10_t06_bundle.py`; T06 manifest/freeze report; mocked bundle tests; initial independent reviewer found checks consistent | No authorized end-to-end inference against the actual bundles | Do not alter bundles, calibrators, or thresholds; actual bundle inference remains part of the one-time approved evaluation |
+| Three binary targets, label definition, IDs and predictor safety | Validates each target, `DEATH_BINARY == (LET_IS > 0)`, unique IDs, forbidden predictors, and equal row counts | Synthetic input-validation tests; Stage 1 source | Exact saved test X-to-ID row alignment cannot be shown by equal counts/unique IDs; no shared row key exists | Keep the limitation explicit. Do not reconstruct the split downstream unless the user separately authorizes an exception to `AGENTS.md` |
+| AUROC, AUPRC/AP, Brier, Brier Skill Score, Log Loss, threshold metrics and accuracy | Computed per target; confusion matrix stores TN/FP/FN/TP; report separates ranking from probability/calibration quality | Synthetic metric test; guide states BSS baseline `pi * (1 - pi)`; implementation uses `1 - Brier / (pi * (1 - pi))` with evaluated-partition prevalence; initial independent reviewer found metric calculations consistent | Actual held-out metric values are unavailable by design | Compute once only after approval; do not use results for selection or tuning |
+| ECE, calibration intercept/slope, uncertainty and reliability diagrams | Equal-width ECE and equal-width/quantile reliability bins are generated; joint logistic slope is diagnostic-only; failed/unstable diagnostic does not discard primary metrics | Synthetic diagnostic test including optimizer failure; initial independent reviewer found calibration calculations consistent | Actual held-out diagnostics/plots | Generate after approval; do not refit calibration or tune from results |
+| Before/after calibration comparison | Uses T06 outer-OOF development raw and fold-local Platt probabilities on the same IDs/labels; emits comparison metrics and development-only plots; does not fit a calibrator | `stage10_t06_outputs/cross_fitted_oof_predictions.csv`; T06 outputs and bundle API; synthetic output test | Final report has not yet been assembled; independent confirmation of OOF provenance | Reviewer checks paired same-row source and labels; later include the plots as development calibration evidence, distinct from test reliability diagrams |
+| Run provenance and output safety | Manifest design records bundle/input hashes, frozen parameters/thresholds, versions, split source/configuration, and limitations; staging is no-overwrite | Code and synthetic end-to-end output test; no actual T07 directory created | Hashes and run details can only be recorded during authorized evaluation | Reviewer checks manifest completeness; preserve the one-time output directory and do not add labels to T08 export |
+| Test-file/source-data provenance and alignment audit | No held-out file was opened, hashed, or loaded; no source-data hash was found in existing reviewed records | Stage 1 code applies one `test_idx` to X/y/IDs and writes a test row count to `split_summary.csv`; current CSVs lack a shared row key | Exact X-to-ID row matching and unchanged-source hash are unverified; AGENTS.md prohibits downstream split recreation | Do not perform the requested reconstruction audit under the current gate. A separately approved policy exception would be required before such source/test access |
+| T09 split, preprocessing and comparable CV results | Existing Stage 1–10 scripts/reports contain split, fold-local preprocessing and model-comparison evidence; no final consolidated report exists | Stage reports, run records, and `TASKS.md` | Final guide-mapped report and an independent final cross-check | After T07 approval/evaluation, assemble from existing reports without changing model selection |
+| T09 final test results and calibration reporting | T07 report is implemented but has not been generated; development OOF before/after plots are supported | Synthetic output test; guide deliverables; development OOF source | Authorized T07 outputs and final report | Complete only after the one-time approved T07 evaluation; keep ranking and calibration quality clearly distinguished |
+| T09 mortality SHAP, four required questions, two literature questions, and extra-credit section | Not supplied by the T07 evaluator | Guide final-deliverable list; existing mortality-analysis evidence must be separately checked | Presence/completeness in the final assignment report has not been verified | Audit the relevant existing report/SHAP artifacts and answer the guide questions in T09; keep extra credit separate if applicable |
+| Independent verification | Implementation review is clear after a targeted correction; held-out evaluation remains unverified | Initial code review returned FAIL for retry-after-output-deletion; targeted independent follow-up returned PASS after the durable-marker fix. The initial reviewer found the remaining approval, metric, and alignment descriptions consistent | No authorized evaluation/output review; no independent PASS exists for actual T07 acceptance | Keep T07 incomplete. After separate explicit approval, perform the one-time evaluation and request read-only verification of the outputs |
+
+### Readiness status
+
+- **Implementation:** present; final readiness changes include the explicit
+  one-time attempt guard.
+- **Synthetic tests:** PASS; `PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -B
+  -m unittest discover -s tests -p 'test_stage11_t07_evaluation.py' -v`
+  ran 12 tests successfully. AST parsing and `git diff --check` also passed.
+  Pylance reported no diagnostics for the evaluator; its syntax endpoint did
+  not recognize the tests file as a workspace user file.
+- **Development-only provenance/calibration evidence:** PASS for the T06 OOF
+  source check (1,360 rows and unique IDs per target; both label classes);
+  Stage 1 split construction reviewed. No split reconstruction or source-data
+  hash performed.
+- **Independent review:** the initial implementation review found one medium
+  guard issue; the targeted independent follow-up passed after the fix. This
+  does not verify actual held-out results or complete T07.
+- **Held-out evaluation:** not performed. No test file was accessed and no
+  T07 outputs were created.
+- **T07/T09:** remain incomplete. T08 and T09 execution are out of scope until
+  T07 is approved and completed.
+
+### T06/T07 comprehensive implementation review (2026-11-06)
+
+- T06 label validation initially failed independent review because a missing
+  `LET_IS` column bypassed mortality-definition validation. The implementation
+  now requires `LET_IS`, validates finite exact binary outcomes before row
+  filtering/conversion, matches `LET_IS` and mortality missingness, and checks
+  `DEATH_BINARY == (LET_IS > 0)`. The targeted independent re-review passed;
+  the focused T06 suite passed 20 tests. The existing `Pandas4Warning` remains.
+- T07 edge-case fixes ensure tied probabilities remain in the same quantile
+  reliability bin, constant probabilities produce one bin, split counts must
+  be finite integers, and calibration labels are validated. Its synthetic
+  suite also tests decision-curve net benefit and references, seeded bootstrap
+  AUROC/AP intervals, invalid single-class draw accounting, output completeness,
+  frozen bundle/threshold consistency, approval refusal, and retry protection.
+- The independent T07 implementation review passed. It confirmed the DCA
+  formula, 5%–40% grid, treat-all/treat-none references, 1,000-replicate
+  percentile bootstrap provenance, and no effect on frozen thresholds.
+- Complete relevant suite command:
+  `PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -B -m unittest discover -s tests -v`
+  Result: **45 tests passed**. One existing `Pandas4Warning` occurred in the
+  T06 category-handling test. `git diff --check` passed.
+- No T06 model fit or production T07 run occurred. No locked test input was
+  accessed, enumerated, read, hashed, or loaded; no attempt marker or T07
+  output directory was created. T07 implementation review is not T07 output
+  verification and does not authorize held-out access.
+- Alignment limitation remains: the Stage 1 source uses one split index for
+  X/y/IDs, but saved test CSVs have no common row key or alignment fingerprint.
+  The split was not recreated. After separate explicit approval, run T07 once
+  and request independent review of its generated outputs.

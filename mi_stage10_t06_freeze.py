@@ -210,7 +210,7 @@ def oof_base_predictions(
     phase: str = "oof_base_model",
 ) -> tuple[np.ndarray, np.ndarray]:
     """Return one deterministic stratified OOF score and fold number per input row."""
-    labels = np.asarray(y, dtype=int)
+    labels = _validated_binary_labels(y, target)
     if len(X) != len(labels):
         raise ValueError("X and y lengths differ.")
     if set(np.unique(labels)) != {0, 1} or np.bincount(labels).min() < n_splits:
@@ -537,7 +537,7 @@ def crossfit_target(
     warning_sink: list[dict] | None = None,
 ) -> pd.DataFrame:
     """Nested five-fold cross-fitting; each row is scored by an outer-held-out model."""
-    labels = np.asarray(y, dtype=int)
+    labels = _validated_binary_labels(y, target)
     ids = np.asarray(ids)
     if len(X) != len(labels) or len(ids) != len(labels):
         raise ValueError("X, y, and development IDs are not row aligned.")
@@ -627,7 +627,7 @@ def full_development_oof_and_model(
     target: str = "full_development",
 ) -> tuple[np.ndarray, np.ndarray, dict]:
     """Fit the final calibrator/model and stage a serialized bundle without retaining it."""
-    labels = np.asarray(y, dtype=int)
+    labels = _validated_binary_labels(y, target)
     scores, folds = oof_base_predictions(
         X, labels, model_name, estimator_builder, n_splits=5, seed=SEED,
         warning_sink=warning_sink, target=target, phase="final_calibrator_base_model",
@@ -747,8 +747,10 @@ def _package_versions() -> dict[str, str | None]:
 
 def _validate_development_inputs(X: pd.DataFrame, y_all: pd.DataFrame,
                                  ids: pd.DataFrame, dictionary: pd.DataFrame) -> None:
-    if not set(TARGETS).issubset(y_all.columns):
-        raise ValueError("One or more required outcomes are missing from development labels.")
+    required_outcomes = {*TARGETS, "LET_IS"}
+    if not required_outcomes.issubset(y_all.columns):
+        raise ValueError("Required development labels are missing one or more outcomes, including LET_IS.")
+    _validate_outcome_values(y_all)
     if len(X) != len(y_all) or len(ids) != len(X):
         raise ValueError("Stage 1 development X, y, and ID rows are not aligned.")
     if ids.shape[1] != 1 or ids.iloc[:, 0].isna().any() or ids.iloc[:, 0].duplicated().any():
@@ -764,6 +766,46 @@ def _validate_development_inputs(X: pd.DataFrame, y_all: pd.DataFrame,
         raise ValueError("Stage 8 native categorical predictors are missing.")
     if set(CONTINUOUS + ORDINAL + NOMINAL).difference(X.columns):
         raise ValueError("Stage 3 preliminary forest feature groups are incomplete.")
+
+
+def _validated_binary_labels(values, name: str, *, allow_missing: bool = False) -> np.ndarray:
+    """Validate labels before integer conversion; optionally retain true missingness."""
+    raw = pd.Series(values)
+    numeric = pd.to_numeric(raw, errors="coerce")
+    present = raw.notna()
+    malformed = present & (numeric.isna() | ~np.isfinite(numeric))
+    nonbinary = present & ~numeric.isin([0, 1])
+    if malformed.any() or nonbinary.any():
+        raise ValueError(f"{name} labels must be finite exact binary 0/1 values.")
+    if not allow_missing and numeric.isna().any():
+        raise ValueError(f"{name} labels cannot contain missing values here.")
+    if allow_missing:
+        return numeric.to_numpy(dtype=float)
+    return numeric.to_numpy(dtype=np.int8)
+
+
+def _validate_outcome_values(y_all: pd.DataFrame) -> None:
+    """Reject malformed non-null outcome values before dropna or integer casts."""
+    missing_targets = {*TARGETS, "LET_IS"}.difference(y_all.columns)
+    if missing_targets:
+        raise ValueError(f"Development labels are missing required outcomes: {sorted(missing_targets)}")
+    for target in TARGETS:
+        _validated_binary_labels(y_all[target], target, allow_missing=True)
+
+    let_is = pd.to_numeric(y_all["LET_IS"], errors="coerce")
+    let_present = y_all["LET_IS"].notna()
+    if (let_present & (let_is.isna() | ~np.isfinite(let_is))).any():
+        raise ValueError("LET_IS labels must be finite wherever present.")
+    death_present = y_all["DEATH_BINARY"].notna()
+    if not let_present.equals(death_present):
+        raise ValueError("DEATH_BINARY missingness must match LET_IS before deriving mortality labels.")
+    if let_present.any():
+        expected_death = (let_is.loc[let_present] > 0).astype(np.int8)
+        death = _validated_binary_labels(
+            y_all.loc[let_present, "DEATH_BINARY"], "DEATH_BINARY",
+        )
+        if not np.array_equal(death, expected_death.to_numpy()):
+            raise ValueError("DEATH_BINARY must equal LET_IS > 0 wherever LET_IS is present.")
 
 
 def _run_crossfit(

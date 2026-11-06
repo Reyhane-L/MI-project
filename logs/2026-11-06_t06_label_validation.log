@@ -1,0 +1,40 @@
+T06 development outcome validation correction — 2026-11-06
+
+Scope:
+- Corrected only the T06 development outcome validation path and added focused
+  regression tests. No stage output or frozen bundle was changed.
+
+Finding and correction:
+- T06 previously dropped missing labels and cast remaining outcomes to int8
+  without first validating values. Fractional labels could therefore truncate
+  into 0/1 and non-binary values could pass too far into the freeze workflow.
+- Added validation before per-target dropna/casts: each required development
+  target accepts only finite exact 0/1 values when non-missing. Missing target
+  values remain supported by the existing per-target dropna policy.
+- Where LET_IS is present, its non-missing values must be finite; its
+  missingness must match DEATH_BINARY missingness; and DEATH_BINARY must equal
+  LET_IS > 0 for every non-missing row. Direct cross-fit helper entry points
+  also validate labels before integer conversion.
+
+Checks:
+- `PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -B -m unittest discover -s tests -p 'test_stage10_t06_freeze.py' -v`
+  Result: PASS, 20 tests. One existing Pandas4Warning remains in the
+  category-handling test.
+- Regression coverage includes fractional and out-of-range target labels,
+  legitimate missing outcomes, non-finite LET_IS, mortality-definition
+  mismatch, mortality missingness mismatch, and cross-fit rejection before
+  estimator construction.
+- No model was fit. No T07 or held-out file was accessed.
+
+Independent-review correction — required LET_IS — 2026-11-06
+
+- The independent reviewer found that the outcome validator treated LET_IS as
+  optional, allowing the T06 input path to skip verification of the frozen
+  DEATH_BINARY = LET_IS > 0 definition. Updated both the development-input
+  contract and the outcome validator to require LET_IS; removed the optional
+  early return.
+- Added a regression assertion that missing LET_IS is rejected.
+- Reran:
+  `PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -B -m unittest discover -s tests -p 'test_stage10_t06_freeze.py' -v`
+  Result: PASS, 20 tests. The existing Pandas4Warning in category handling
+  remains. No model fit, held-out access, or T07 run occurred.

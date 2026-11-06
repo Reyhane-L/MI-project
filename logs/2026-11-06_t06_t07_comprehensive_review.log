@@ -1,0 +1,41 @@
+T06/T07 implementation audit — 2026-11-06
+
+Scope and constraints:
+- Read the project instructions, task checklist, progress handoff, verification
+  procedure, latest T07 run record, T06/T07 implementation and tests, and the
+  relevant assignment-guide requirements.
+- No held-out test file was opened, read, hashed, loaded, or enumerated. No T07
+  production evaluation, T06 model fit, attempt marker, or T07 output run was
+  performed.
+
+Findings and fixes:
+- Independent T06 review found development labels were not validated before
+  dropna/int conversion, permitting fractional outcomes and an incorrect
+  mortality definition. Added validation of finite exact binary targets,
+  required LET_IS, matching LET_IS/DEATH_BINARY missingness, and
+  DEATH_BINARY == (LET_IS > 0); direct cross-fit helpers validate before fit.
+  Regression tests cover malformed labels, missing LET_IS, mismatch, and
+  legitimate missing target rows. Independent targeted re-review: PASS.
+- T07 review found tied probability scores could be split across quantile bins
+  and fractional split counts could pass via truncation. Fixed both and added
+  synthetic edge-case coverage.
+- Added the guide's optional decision-curve analysis over 5%–40% thresholds
+  with treat-all/treat-none references and seeded 1,000-replicate percentile
+  bootstrap 95% intervals for AUROC/AP. Invalid single-class bootstrap draws
+  are explicitly counted. These diagnostics do not select or change the
+  frozen threshold.
+- T07 independent implementation review: PASS. Existing X/y/ID exact row
+  correspondence remains unprovable from current CSV artifacts; documented
+  Stage 1 source uses the same test_idx and no split reconstruction was done.
+
+Verification:
+- Complete relevant suite:
+  `PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -B -m unittest discover -s tests -v`
+  Result: PASS, 45 tests. The expected existing Pandas4Warning appeared in the
+  TabPFN category-handling test.
+- `git diff --check`: PASS.
+- T07 implementation-only focused suite: PASS, 17 tests (synthetic inputs,
+  mocked bundles); T06 focused suite: PASS, 20 tests.
+- Actual held-out evaluation remains unrun and requires separate explicit
+  user approval under AGENTS.md. T07 remains incomplete until the approved
+  one-time evaluation and independent output verification pass.

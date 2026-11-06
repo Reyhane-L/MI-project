@@ -1,0 +1,179 @@
+T07 implementation-only work — 2026-11-06
+
+Scope:
+- Added mi_stage11_t07_evaluation.py and
+  tests/test_stage11_t07_evaluation.py.
+- Updated TASKS.md, verification.md, and progress.md.
+- Did not edit Stage 1–10 scripts or outputs, model bundles, source data, or
+  existing stage output directories.
+
+Boundary and approval:
+- Read AGENTS.md and confirmed held-out access requires separate explicit
+  user approval after T06 is frozen. The CLI flag is only an acknowledgement;
+  it does not prove that the approval procedure occurred.
+- Read Stage 1 split-generation source and T06 manifest/freeze records. Did not
+  open, inspect, hash, load, or enumerate X_test.csv, y_test.csv, or
+  test_record_ids.csv. Did not load a frozen model bundle or execute T07.
+- No stage11_t07_outputs/ directory was created.
+
+Implementation:
+- Added explicit CLI approval acknowledgement and a second approval check at
+  the runner boundary, before path access.
+- Added frozen bundle/Platt/threshold/feature-order checks; required target,
+  binary outcome, LET_IS-to-DEATH_BINARY, unique ID, and row-count validation.
+- The run manifest records hashes, Stage 1 split source and split summary,
+  expected split configuration, and the known row-alignment limitation.
+- Added ranking metrics, Brier Skill Score, Log Loss, frozen-threshold metrics,
+  ECE/calibration diagnostics, quantile reliability diagrams, and staged
+  no-overwrite output creation.
+- Calibration slope diagnostic failure is recorded as unavailable and does
+  not discard primary evaluation results.
+
+Validation:
+- Final focused command:
+  PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -B -m unittest discover -s tests -p 'test_stage11_t07_evaluation.py' -v
+  Result: PASS, 11 tests. Tests use synthetic in-memory data, temporary
+  synthetic CSVs, and mocked bundles; the end-to-end output test does not use
+  project data.
+- AST parsing for both added Python files: PASS.
+- git diff --check -- mi_stage11_t07_evaluation.py tests/test_stage11_t07_evaluation.py:
+  PASS.
+- .venv/bin/python -B mi_stage11_t07_evaluation.py without the acknowledgement
+  flag: exits 2 with an approval error; no T07 output directory created.
+- During implementation, early test runs exposed a stale CLI argument name and
+  report manifest mismatch; both were fixed and the final full focused suite
+  passed.
+- At the initial implementation checkpoint the independent code-review agent
+  failed to start because model routing was unavailable; the review was
+  pending at that point. The later readiness audit below records the successful
+  review, its finding, correction, and targeted PASS.
+
+Known evidence limitation:
+- Stage 1 source constructs X_test, y_test, and test IDs from one test_idx, and
+  split_summary.csv records the test row count. The current saved X/y/ID CSVs
+  have no shared row key or alignment fingerprint, so exact per-row X-to-ID
+  correspondence cannot be independently established from those artifacts.
+- T07 remains incomplete and blocked pending separate explicit user approval
+  and independent verification. No test evaluation or T08 work occurred.
+
+Readiness audit addendum:
+- Re-read AGENTS.md, TASKS.md, progress.md, verification.md, this log, the
+  relevant assignment-guide sections, Stage 1 split generation, and T06
+  freeze/bundle evidence. Stage 1 uses one `test_idx` for X/y/IDs. The guide's
+  Brier Skill Score baseline is `pi * (1 - pi)`; the implementation uses
+  `1 - Brier / baseline`. The guide also requests before/after calibration
+  diagrams.
+- Did not reconstruct the split or hash MI.data: AGENTS.md prohibits
+  downstream split recreation, and no prior source-data hash was found in the
+  reviewed run records. Exact saved X-to-ID alignment remains unverified
+  because the Stage 1 CSVs have no shared row-level key.
+- Confirmed T06 development outer-OOF raw and fold-local Platt probabilities
+  are paired on identical IDs/labels and provide the before/after comparison
+  without fitting a new calibrator. Development-only audit command:
+  ```
+  .venv/bin/python - <<'PY'
+  import pandas as pd
+  path = 'stage10_t06_outputs/cross_fitted_oof_predictions.csv'
+  oof = pd.read_csv(path)
+  required = {'target', 'ID', 'true_label', 'raw_probability', 'platt_probability'}
+  assert required.issubset(oof.columns)
+  assert set(oof['target'].unique()) == {'DEATH_BINARY', 'ZSN', 'FIBR_PREDS'}
+  for target, part in oof.groupby('target', sort=True):
+      assert len(part) == 1360
+      assert not part['ID'].isna().any() and not part['ID'].duplicated().any()
+      assert part['true_label'].isin([0, 1]).all()
+      print(f'{target}: rows={len(part)}, unique_IDs={part.ID.nunique()}, label_classes={sorted(part.true_label.unique())}')
+  print('Development-only OOF audit: PASS')
+  PY
+  ```
+  Result: PASS, 1,360 rows/unique IDs for each of the three targets.
+- Added an exclusive attempt marker before any input reads. Synthetic test
+  command:
+  `PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -B -m unittest discover -s tests -p 'test_stage11_t07_evaluation.py' -v`
+  Result: PASS, 12 tests after the independent-review correction.
+  The synthetic end-to-end test patches the marker to a temporary directory,
+  verifies it remains after success, deletes only its temporary synthetic
+  outputs, and confirms the marker refuses a second run.
+- Syntax/whitespace checks: AST parsing passed for the evaluator and tests;
+  `git diff --check` passed. Pylance returned no diagnostics for the evaluator;
+  its syntax endpoint did not recognize the tests file as a workspace user
+  file.
+- No-approval command:
+  `PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -B mi_stage11_t07_evaluation.py`
+  Result: exit status 2 before input/bundle access; neither
+  `stage11_t07_outputs/` nor `.stage11_t07_attempt_started` exists.
+- T07 was not run. No held-out artifact was opened, hashed, loaded, or
+  enumerated; no frozen bundle was loaded; no source or Stage 1 output was
+  changed.
+- Initial independent code review returned FAIL (medium): the success path
+  removed the attempt marker, so deleting the output directory would permit a
+  repeat evaluation. Corrected the guard to retain the exclusive marker after
+  both success and failure, record its relative path/SHA-256 in the manifest,
+  and block a second synthetic runner call after deletion of the temporary
+  output directory. The updated 12-test suite passes. Targeted independent
+  re-review returned PASS: marker creation is exclusive and before input
+  reads, it persists after success, the manifest records its path/hash, and
+  the synthetic test removes the temporary output directory before confirming
+  a repeat call is refused. The reviewer did not access held-out data or run
+  production T07. This implementation review does not complete the T07
+  evaluation or verify held-out outputs; T07 remains incomplete.
+
+T07 edge-case review and test expansion — 2026-11-06
+
+- Reviewed T07 validation, frozen bundle/threshold consistency, metrics,
+  calibration diagnostics, report/manifest generation, staged outputs, and
+  approval/one-time guards. The assignment requires the test evaluation to
+  report AUROC/AP, Brier and prevalence-baseline Brier Skill Score, Log Loss,
+  threshold metrics, and calibration diagnostics; current implementation
+  preserves these computations and does not refit frozen models or calibration.
+- Found two edge cases in implementation: rank-first quantile binning split
+  tied probability scores across bins, and the saved test-row-count check
+  converted the value to `int`, which could accept a fractional value by
+  truncation. Quantile grouping now uses probability values directly, keeping
+  ties together and treating an all-constant score vector as one bin. Split
+  summary counts must now be finite integers exactly matching the input rows.
+- Expanded synthetic tests for missing explicit inputs/required columns,
+  duplicate predictor columns, fractional split counts, tied/constant
+  probability bins, and invalid calibration labels. Existing tests continue
+  to exercise approval refusal, import safety, frozen bundle/threshold checks,
+  metric calculations, optimizer failure, output completeness, and retry
+  protection.
+- Focused command:
+  `PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -B -m unittest discover -s tests -p 'test_stage11_t07_evaluation.py' -v`
+  Result: PASS, 15 tests. Initial run after edits failed because the new test
+  exposed misplaced validation and pandas' `qcut` return type; both were fixed
+  before the passing run. Matplotlib used a temporary cache because its
+  default cache directory is not writable; no dependency was installed.
+- AST parsing passed for evaluator and test module; `git diff --check` passed.
+  All end-to-end coverage uses temporary synthetic inputs and mocked bundles.
+  No locked test file was opened, read, hashed, loaded, or enumerated; no
+  attempt marker or production output directory was created; actual T07 was
+  not run.
+
+T07 optional DCA and bootstrap uncertainty addition — 2026-11-06
+
+- Implemented descriptive decision curve analysis at 5% through 40%
+  threshold probabilities in 1-point steps. For every target/threshold, the
+  table records frozen-model net benefit plus treat-all and treat-none
+  references. Three target-specific plots and a combined CSV are included.
+  These calculations use only the one evaluation sample and do not select or
+  modify the frozen T06 operating thresholds.
+- Added deterministic paired row-bootstrap percentile 95% intervals for
+  AUROC and average precision. The production protocol uses 1,000 replicates
+  with seed 42; single-class draws are omitted from metric intervals and
+  counted explicitly. Replicate count, seed, method, and invalid-draw policy
+  are recorded in the run manifest and report.
+- Added focused synthetic tests for net-benefit arithmetic and reference
+  strategies, fixed threshold coverage, bootstrap determinism, valid/invalid
+  draw accounting, and end-to-end output completeness/report/manifest fields.
+  No model, calibrator, or threshold is refit or selected by these diagnostics.
+- Focused command:
+  `PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -B -m unittest discover -s tests -p 'test_stage11_t07_evaluation.py' -v`
+  Result: PASS, 17 tests. An initial assertion had an incorrect hand-computed
+  model net-benefit expectation; corrected the test to `TP/N - FP/N * pt/(1-pt)`;
+  the full suite then passed. Matplotlib used a temporary cache because its
+  default cache directory is not writable; no dependency was installed.
+- No locked test file was opened, read, hashed, loaded, or enumerated. No
+  production attempt marker or output directory was created; actual T07 was
+  not run. All output generation coverage uses temporary synthetic inputs and
+  mocked bundles.
