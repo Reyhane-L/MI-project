@@ -384,3 +384,22 @@ T06, T07, and T08 are complete. T08 exported 340 rows with exact header `ID,LET_
   validation passed for exact schema, 340 rows, ordered IDs, unique IDs,
   finite bounded probabilities, provenance, and output hashes. No `y_test.csv`
   or test-label values were accessed.
+
+### T09 mortality SHAP deliverable (2026-11-07; focused independent review passed)
+
+- Added `mi_stage13_t09_mortality_shap.py` and generated a summary for the
+  frozen `non_tabpfn_v1` CatBoost `DEATH_BINARY` bundle using only the 1,360
+  saved Stage 1 development rows. CatBoost native Independent TreeSHAP used a
+  seeded 64-row development reference sample; no fitting, calibration, or
+  thresholding occurred.
+- The plot and feature summary rank `AGE`, `ZSN_A`, `ant_im`, `TIME_B_S`, and
+  `STENOK_AN` highest by mean absolute SHAP. The note defines the leading
+  features from the Stage 1 dictionary and describes raw-score SHAP direction,
+  while avoiding causal claims and unsupported value-direction interpretations.
+- Outputs and provenance are in `stage13_t09_mortality_shap_outputs/`; the
+  manifest records development, dictionary, frozen bundle, and T06 manifest
+  hashes. Five initial synthetic tests and six after the explanation correction
+  passed. Independent read-only review passed after the interpretation fix;
+  no held-out or T07/T08 inputs were accessed.
+- This completes only the mortality SHAP deliverable. The consolidated T09
+  report and remaining guide questions/requirements are still outstanding.

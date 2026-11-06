@@ -1,0 +1,30 @@
+\begin{thebibliography}{1}
+
+\bibitem{assignmentguide}
+Ai-hw2: Machine learning assignment guide.
+\newblock Course-supplied assignment specification.
+
+\bibitem{guo2026guide}
+D.~Guo et~al.
+\newblock Predicting complications and mortality in myocardial infarction
+  patients using a graph neural network model, 2026.
+\newblock Title and author as listed in the course assignment guide.
+
+\bibitem{lundberg2020}
+Scott~M. Lundberg, Gabriel Erion, Hugh Chen, et~al.
+\newblock From local explanations to global understanding with explainable ai
+  for trees.
+\newblock {\em Nature Machine Intelligence}, 2:56--67, 2020.
+
+\bibitem{prokhorenkova2018}
+Liudmila Prokhorenkova, Gleb Gusev, Aleksandr Vorobev, Anna~Veronika Dorogush,
+  and Andrey Gulin.
+\newblock Catboost: unbiased boosting with categorical features.
+\newblock {\em Advances in Neural Information Processing Systems}, 31, 2018.
+
+\bibitem{ucimi}
+{UCI Machine Learning Repository}.
+\newblock Myocardial infarction complications.
+\newblock Dataset record in the UCI Machine Learning Repository.
+
+\end{thebibliography}

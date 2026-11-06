@@ -457,6 +457,18 @@ The production command was run once after code review. Files are in
 `stage12_t08_outputs/`; the run record is
 `logs/2026-11-06_t08_probability_export.log`.
 
+### T08 independent verification follow-up (2026-11-06)
+
+**Fresh read-only output review: PASS.** The independent reviewer confirmed
+340 rows, exact header, unique saved-ID order, finite bounded probabilities,
+and exact equality between submission columns and T07 calibrated probabilities
+read using only `ID`, `target`, and `calibrated_probability`. T06 bundle
+metadata, Platt parameters, thresholds, bundle hashes, T07/T08 manifests,
+submission hash, and the exact two-file output set agree. No `y_test.csv` or
+label values were accessed, and the exporter has no `y_test.csv` path. No
+artifacts were modified. The known predictor-to-ID row correspondence limit
+remains: the source artifacts contain no common row key.
+
 ### T06/T07 comprehensive implementation review (2026-11-06)
 
 - T06 label validation initially failed independent review because a missing
@@ -513,3 +525,28 @@ revision. Do not open held-out inputs or run T07.
 
 Implementation verification is pending. Passing this checklist verifies the
 replacement development freeze only; it does not authorize or complete T07.
+
+### T09 mortality SHAP focused review (2026-11-07)
+
+**Verdict: PASS for the mortality SHAP deliverable only.** This does not
+complete the full T09 report.
+
+- Read-only review confirmed that `mi_stage13_t09_mortality_shap.py` uses the
+  frozen `non_tabpfn_v1` DEATH_BINARY CatBoost bundle and exact ordered Stage 1
+  development predictors. It computes CatBoost native Independent TreeSHAP
+  with a seeded 64-row background drawn from development data; there is no
+  fitting, recalibration, thresholding, or held-out/T07/T08 input path.
+- The output covers 1,360 development rows and the 102 frozen features. The
+  summary plot, feature CSV, explanation, and manifest agree. The explanation
+  uses Stage 1 dictionary definitions, accurately describes positive/negative
+  SHAP on the raw score axis, and states that the attributions are not causal.
+- Provenance checks confirmed the manifest hashes match development features,
+  development labels, the column dictionary, frozen bundle, and T06 manifest.
+  The labels serve only as CatBoost Pool metadata for native SHAP.
+- Implementation reported six focused synthetic tests passed after the
+  explanation update; independent review verified the plot and documented
+  interpretation without accessing held-out or T07/T08 row-level data.
+- Limitation: these are development-row explanations of the frozen base
+  model's raw output, not Platt-calibrated probability explanations. The
+  beeswarm-style figure is monochrome and therefore does not assert feature
+  value direction. No causal interpretation is supported.

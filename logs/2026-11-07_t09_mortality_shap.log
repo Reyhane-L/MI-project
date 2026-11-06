@@ -1,0 +1,62 @@
+# T09 frozen mortality SHAP summary — 2026-11-07
+
+## Scope and frozen inputs
+
+- Read only the T06 `non_tabpfn_v1` death bundle/manifest, `stage1_outputs/X_train.csv`,
+  and matching development `stage1_outputs/y_train.csv`.
+- The frozen bundle is `CatBoost tuned` with its T06 Platt calibrator; model,
+  calibrator, thresholds, and all T06 artifacts were left unchanged. The
+  calibrator is not applied to or refit for the feature attributions.
+- CatBoost's binary-classification SHAP API requires Pool labels. The aligned
+  development `DEATH_BINARY` labels are supplied as Pool metadata only; they
+  do not fit, tune, calibrate, or select the frozen model. No held-out or T07/T08
+  files are referenced by the new script.
+
+## Implementation and generated files
+
+- Added `mi_stage13_t09_mortality_shap.py`. It checks the active T06 freeze
+  revision, model/calibration identity, exact development feature names/order,
+  and forbidden predictor columns before computing native CatBoost
+  Independent TreeSHAP values. The fixed 64-row reference sample is drawn
+  only from development predictors with seed 42.
+- Added `tests/test_stage13_t09_mortality_shap.py` for schema checks, invalid
+  SHAP matrix checks, feature ranking, and synthetic summary plotting.
+- Created `stage13_t09_mortality_shap_outputs/` containing the summary PNG,
+  ordered mean-absolute/signed SHAP CSV, short feature explanation, and a
+  manifest with input/bundle/manifest hashes and versions.
+- Most prominent development features by mean absolute SHAP: `AGE` (0.2935),
+  `ZSN_A` (0.2911), `ant_im` (0.2873), `TIME_B_S` (0.2699), and `STENOK_AN`
+  (0.2131). These are contribution magnitudes on CatBoost's raw output scale,
+  not causal effects.
+
+## Commands and checks
+
+- `PYTHONDONTWRITEBYTECODE=1 MPLCONFIGDIR=/private/tmp .venv/bin/python -B -m unittest discover -s tests -p 'test_stage13_t09_mortality_shap.py' -v` — **5 tests passed**.
+- `rg -n 'X_test|y_test|test_predictions|stage11|stage12' mi_stage13_t09_mortality_shap.py` — no matches.
+- `PYTHONDONTWRITEBYTECODE=1 MPLCONFIGDIR=/private/tmp .venv/bin/python -B mi_stage13_t09_mortality_shap.py` — completed; generated 1,360 development-row explanations and 64-row reference pool.
+- Output inventory and the top-feature CSV were checked; summary image was visually inspected. `git diff --check` passed.
+
+## Run note and limitation
+
+- The initial production invocation stopped before creating outputs because
+  CatBoost requires labels in a binary-classification `Pool`. This was fixed by
+  supplying the aligned development target as Pool metadata only; the rerun
+  completed. No failed output was left behind.
+- Attributions explain the frozen CatBoost base model on development examples;
+  they are not calibrated-probability explanations, test-set explanations, or
+  causal effects. The summary plot uses a deterministic beeswarm-style jitter
+  and a single point color because the project environment does not include
+  the separate `shap` plotting package; SHAP values themselves come from
+  CatBoost's native TreeSHAP implementation.
+
+## Documentation clarification (review follow-up)
+
+- Added top-feature definitions from `stage1_outputs/column_dictionary.csv` and
+  clarified the raw-score reading: positive SHAP raises and negative SHAP
+  lowers the CatBoost death score. The note describes mixed contributions
+  across admissions, and explicitly avoids value-direction and causal claims.
+- Updated only `mortality_shap_explanation.md`; the saved SHAP values and plot
+  were reused without recomputing them. The reproducible script now generates
+  the same dictionary-backed explanation if rerun into a fresh output path.
+- Re-ran focused synthetic tests: **6 passed**. No held-out or T07/T08 files
+  were opened, and no frozen artifact was changed.

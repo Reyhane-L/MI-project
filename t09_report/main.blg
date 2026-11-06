@@ -1,0 +1,46 @@
+This is BibTeX, Version 0.99d (TeX Live 2025)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: main.aux
+The style file: plain.bst
+Database file #1: references.bib
+You've used 5 entries,
+            2118 wiz_defined-function locations,
+            522 strings with 4847 characters,
+and the built_in function-call counts, 1323 in all, are:
+= -- 121
+> -- 72
+< -- 0
++ -- 29
+- -- 24
+* -- 75
+:= -- 227
+add.period$ -- 14
+call.type$ -- 5
+change.case$ -- 26
+chr.to.int$ -- 0
+cite$ -- 5
+duplicate$ -- 42
+empty$ -- 109
+format.name$ -- 24
+if$ -- 273
+int.to.chr$ -- 0
+int.to.str$ -- 5
+missing$ -- 2
+newline$ -- 27
+num.names$ -- 8
+pop$ -- 40
+preamble$ -- 1
+purify$ -- 21
+quote$ -- 0
+skip$ -- 38
+stack$ -- 0
+substring$ -- 44
+swap$ -- 5
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 20
+warning$ -- 0
+while$ -- 10
+width$ -- 6
+write$ -- 50

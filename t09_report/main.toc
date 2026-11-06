@@ -1,0 +1,15 @@
+\contentsline {section}{\numberline {1}Introduction and objectives}{1}{section.1}%
+\contentsline {section}{\numberline {2}Dataset, outcomes, and preprocessing}{2}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Split and validation design}{2}{subsection.2.1}%
+\contentsline {section}{\numberline {3}Comparable development cross-validation and model selection}{2}{section.3}%
+\contentsline {section}{\numberline {4}Probability calibration}{3}{section.4}%
+\contentsline {section}{\numberline {5}Final held-out evaluation}{4}{section.5}%
+\contentsline {section}{\numberline {6}Mortality model explanation with SHAP}{5}{section.6}%
+\contentsline {section}{\numberline {7}Assignment questions awaiting student responses}{6}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Mandatory question 1: leakage and preprocessing}{6}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Mandatory question 2: probabilities after 1:1 undersampling}{6}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}Mandatory question 3: asymmetric decision cost}{7}{subsection.7.3}%
+\contentsline {subsection}{\numberline {7.4}Mandatory question 4: prediction versus causality}{7}{subsection.7.4}%
+\contentsline {subsection}{\numberline {7.5}Literature-review question 1: student-selected guide article}{7}{subsection.7.5}%
+\contentsline {subsection}{\numberline {7.6}Literature-review question 2: student-selected guide article}{7}{subsection.7.6}%
+\contentsline {section}{\numberline {8}Limitations and reproducibility}{7}{section.8}%
