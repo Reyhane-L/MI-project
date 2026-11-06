@@ -2,7 +2,7 @@
 
 ## Current stage
 
-T06 is complete. Current active task: **T07 implementation readiness only**. T07 has not been run; the held-out partition remains locked pending separate explicit user approval under `AGENTS.md`. T06 and T07 source/test reviews pass; actual held-out outputs still require an approved one-time run and separate output review. T08 and T09 remain pending.
+T06, T07, and T08 are complete. T08 exported 340 rows with exact header `ID,LET_IS,ZSN,FIBR_PREDS`, reusing validated T07 calibrated probabilities from `non_tabpfn_v1`. Synthetic tests and independent code/output review passed; no test labels were accessed. Current active work: T09 final report. Exact test-row X/y/ID alignment remains a documented limitation because the saved CSVs lack a shared row key.
 
 ## Completed
 
@@ -13,9 +13,32 @@ T06 is complete. Current active task: **T07 implementation readiness only**. T07
 
 ## Current blockers
 
-- T07 and any test-partition inspection remain blocked until explicit user approval. Do not open test files before approval.
+- T09 final report remains incomplete.
 - Exact per-row X/y/ID alignment cannot be proven from the existing CSVs; Stage 1 source applies one `test_idx` to all three artifacts, and the limitation is documented.
 - No committed dependency manifest is present; the existing `.venv` is used for the focused test suite.
+
+### T07 authorized recovery and final evaluation (2026-11-06)
+
+- The user reported explicit TA authorization for an audited one-time recovery
+  despite uncertainty about the earlier attempt. The original production marker
+  was copied with metadata and archived without alteration; its SHA-256 is
+  recorded in `logs/t07_recovery_20261106T192834Z/recovery_record.json`. The
+  evaluation then created a fresh active marker under the unchanged exclusive
+  creation guard.
+- Final preflight confirmed the current `non_tabpfn_v1` model mapping,
+  calibration parameters, thresholds, required input paths, and absent T07
+  output directory. `pip check` passed and T07 imported successfully.
+- Ran the production command once:
+  `PYTHONDONTWRITEBYTECODE=1 MPLCONFIGDIR=/private/tmp .venv/bin/python -B mi_stage11_t07_evaluation.py --acknowledge-separate-user-approval`.
+  The evaluator published `stage11_t07_outputs/`; the manifest and exact
+  19-file output set validated. The manifest marker hash matches the new
+  active marker. The command session handle was unavailable during final
+  polling, but atomic output publication and manifest checks confirm completion.
+- Independent read-only verification: PASS. The reviewer independently
+  recomputed ranking, probability, threshold, calibration, bootstrap, and
+  decision-curve metrics for all three targets and checked report/manifest,
+  hashes, plots, marker archive, and exact output membership. The known
+  row-level X/y/ID alignment limit is documented in the report.
 
 ## T05 independent verification (2026-11-05, Asia/Tehran)
 
@@ -339,3 +362,25 @@ T06 is complete. Current active task: **T07 implementation readiness only**. T07
   `logs/2026-11-06_non_tabpfn_replacement.log`. Independent review of the
   corrected rationale and regenerated freeze passed; T07 remains unrun and
   approval-gated.
+
+### T08 probability export (2026-11-06; independent verification passed)
+
+- Read the assignment submission example: expected header is exactly
+  `ID,LET_IS,ZSN,FIBR_PREDS`; the `LET_IS` probability maps from calibrated
+  `DEATH_BINARY`. The saved split summary records 340 test patients.
+- Inspected T07 output provenance without loading test labels: selected only
+  `ID`, target, and calibrated probability fields from the saved predictions;
+  confirmed 340 ordered IDs/probabilities per target, finite bounded values,
+  current `non_tabpfn_v1` model/Platt/threshold metadata and bundle hashes, and
+  the matching saved test-ID hash. Reuse is suitable; the T08 fallback to
+  frozen bundle inference is implemented for unavailable or invalid T07
+  probability artifacts.
+- Added a guarded, no-overwrite exporter, synthetic tests, and the T08
+  verification procedure. T07 reuse also requires the current `X_test.csv`
+  hash to match the T07 manifest; a mismatch triggers frozen-bundle inference.
+- Nine focused synthetic tests passed. Independent code review passed before
+  production export. The one production export created
+  `stage12_t08_outputs/submission.csv` and its run manifest. Independent output
+  validation passed for exact schema, 340 rows, ordered IDs, unique IDs,
+  finite bounded probabilities, provenance, and output hashes. No `y_test.csv`
+  or test-label values were accessed.

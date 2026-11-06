@@ -1,0 +1,65 @@
+# T07 audited recovery and final evaluation — 2026-11-06
+
+## Authorization and recovery
+
+- The user reported explicit TA authorization to perform an audited one-time
+  recovery and rerun T07 on the existing split despite uncertainty about the
+  prior attempt. No separate TA document was supplied in this interaction.
+- Before recovery, the original marker contained
+  `Started UTC: 2026-11-06T14:33:29.827890+00:00`; its SHA-256 was
+  `d9ab289666e74976c4a8127eb965b3f54efa619b017964360cc001368c4607cb`.
+- Preserved the marker byte-for-byte and its metadata, then archived the
+  original at `logs/t07_recovery_20261106T192834Z/`. See
+  `recovery_record.json`, `original_attempt_marker.backup`, and
+  `original_attempt_marker.archived` in that directory.
+- The T07 source and exclusive-create guard were not changed. The production
+  invocation created a new active marker; its hash is recorded in the T07 run
+  manifest. Exactly one production invocation was made.
+
+## Preflight
+
+- `pip check`: PASS (`No broken requirements found`).
+- Import-only T07 check: PASS. Environment used Python 3.14.7,
+  scikit-learn 1.9.1, NumPy 2.5.4, pandas 3.1.0, SciPy 1.18.1,
+  joblib 1.6.0, Matplotlib 3.11.2, and CatBoost 1.2.10.
+- Current T06 manifest revision and all three bundle targets, model names,
+  Platt parameters, and thresholds matched the T07 configuration and
+  `selected_thresholds.csv`.
+- All required path checks passed and no T07 output directory existed before
+  the run. The preflight did not read held-out file contents.
+- Focused synthetic suite:
+  `PYTHONDONTWRITEBYTECODE=1 MPLCONFIGDIR=/private/tmp .venv/bin/python -B -m unittest discover -s tests -p 'test_stage11_t07_evaluation.py' -v`
+  Result: **17 tests passed**.
+
+## Production execution
+
+Command invoked once:
+
+```text
+PYTHONDONTWRITEBYTECODE=1 MPLCONFIGDIR=/private/tmp .venv/bin/python -B mi_stage11_t07_evaluation.py --acknowledge-separate-user-approval
+```
+
+- T07 published `stage11_t07_outputs/` with all 19 files declared in
+  `OUTPUT_FILES`. The manifest records stage T07, all three expected targets,
+  current T06 models, input/bundle hashes, and the active attempt marker hash.
+- Post-run manifest/output validation passed; all 19 names matched exactly and
+  the active marker hash matched the run manifest.
+- The tool session handle became unavailable during final polling. The atomic
+  output publication, complete manifest, and post-run checks confirm the
+  evaluator reached successful finalization; no retry was made.
+
+## Independent output verification
+
+- Independent read-only review: **PASS**. The reviewer checked output-set
+  membership, manifest and hashes, all target results, calibration and frozen
+  thresholds, decision curves, bootstrap intervals, report consistency, and
+  all nine plot files.
+- AUROC, AP, Brier, log loss, Brier Skill Score, ECE, threshold metrics,
+  confusion matrices, calibration diagnostics, bootstrap intervals, and
+  decision-curve model net benefit were independently recomputed and matched
+  the saved outputs for all targets.
+- Exact row-level X/y/ID correspondence cannot be independently verified from
+  existing artifacts because no shared row key exists; the report documents
+  this limitation.
+- No model selection, hyperparameter tuning, recalibration, or threshold
+  changes were performed.

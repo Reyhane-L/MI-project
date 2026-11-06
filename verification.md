@@ -297,7 +297,11 @@ explicit user approval.
 7. Return a separate PASS/FAIL for Stage 8. Do not change implementation
    outputs or task status during independent verification.
 
-## T07 implementation-only status (2026-11-06)
+## T07 implementation-only status (pre-run, 2026-11-06)
+
+This records the state before the authorized recovery below. It is historical;
+the later audited recovery and output-verification section supersedes its
+statements that no production run or output directory existed.
 
 - The approval-gated evaluator and synthetic-only tests are present in
   `mi_stage11_t07_evaluation.py` and
@@ -328,12 +332,14 @@ explicit user approval.
   remains incomplete and approval-gated; no test evaluation or T08 work is
   authorized by this implementation record.
 
-## T07/T09 final-readiness checklist (2026-11-06)
+## T07/T09 final-readiness checklist (pre-run, historical, 2026-11-06)
 
-This is an implementation-readiness audit, not a held-out evaluation or a
-PASS for T07 acceptance. The independent implementation-review result and its
-targeted follow-up are recorded below. Evidence listed here was inspected
-without reading or hashing the locked test files.
+This was an implementation-readiness audit before the authorized recovery,
+not a held-out evaluation or a PASS for T07 acceptance. Its pre-run status is
+superseded by the audited recovery and output verification below. The
+independent implementation-review result and targeted follow-up are recorded
+here for history. At that checkpoint, evidence was inspected without reading
+or hashing the locked test files.
 
 | Requirement | Current implementation | Evidence available | Missing work | Proposed action |
 |---|---|---|---|---|
@@ -370,6 +376,86 @@ without reading or hashing the locked test files.
   T07 outputs were created.
 - **T07/T09:** remain incomplete. T08 and T09 execution are out of scope until
   T07 is approved and completed.
+
+### T07 audited recovery and output verification (2026-11-06)
+
+**Overall verdict: PASS — T07 evaluation complete.** The user reported explicit
+TA authorization for one audited recovery on the existing split. The original
+attempt marker and its metadata were preserved in
+`logs/t07_recovery_20261106T192834Z/`; the evaluator's exclusive marker guard
+was not changed, and the production run created a new active marker.
+
+| Acceptance criterion | Verdict | Evidence |
+|---|---|---|
+| Final frozen model/calibration/threshold configuration | PASS | Preflight and run manifest confirm `non_tabpfn_v1`: CatBoost tuned / Random Forest tuned / Random Forest preliminary, frozen Platt calibration, and T06 thresholds. |
+| One-time attempt control and audit trail | PASS | Original marker backup/archive match the recorded SHA-256 and metadata; new marker is present and its hash matches the manifest. Recovery decision is recorded. |
+| Exact output membership and run manifest | PASS | `stage11_t07_outputs/` contains exactly the 19 declared files; manifest target order and model metadata match T06. |
+| Target metrics, calibration, threshold metrics, DCA and bootstrap | PASS | Independent reviewer recomputed AUROC, AP, Brier, log loss, Brier Skill Score, ECE, threshold metrics/confusions, calibration diagnostics, bootstrap intervals, and DCA net benefit for all three targets; saved values matched. |
+| Reliability and development calibration plots | PASS | All nine expected PNGs have valid signatures; development comparison and report claims match saved sources. |
+| No tuning or model/calibrator changes | PASS | Evaluation uses current frozen bundles and thresholds; no fit/selection code was added or invoked by T07. |
+| Held-out alignment limitation | DOCUMENTED | Existing CSVs lack a shared per-row key, so exact saved X/y/ID row correspondence cannot be independently established; report records this. |
+
+The full report and outputs are in `stage11_t07_outputs/`. The production
+command was invoked once; output publication and manifest validation confirm
+completion. No additional T07 run was made.
+
+## T08 — Assignment probability export
+
+### T08 implementation review (pre-production)
+
+The implementation and synthetic tests must pass independent code review
+before any production export. Do not read test labels at any point.
+
+1. Confirm the exporter never references or opens `y_test.csv`. For reuse of
+   T07 predictions, verify its CSV reader selects only `ID`, `target`, and
+   `calibrated_probability`; it must not materialize `true_label`.
+2. Verify T07 probabilities are reused only if the T07 manifest matches the
+   current `non_tabpfn_v1` models, Platt parameters, thresholds, and bundle
+   hashes, and its recorded test-ID input hash matches the current saved IDs.
+   Its recorded X input hash must also match current `X_test.csv`. Each target
+   must have 340 probabilities, valid `[0,1]` values, and IDs in exact saved
+   order. If any criterion fails or the T07 source is unavailable,
+   verify the fallback uses only `X_test.csv`, saved IDs, and the frozen
+   bundles' calibrated `predict_probability()` API. No `.fit()`, recalibration,
+   thresholding, or test-label access is allowed.
+3. Verify exact submission header `ID,LET_IS,ZSN,FIBR_PREDS`; the `LET_IS`
+   column must be mapped from `DEATH_BINARY` calibrated probabilities. Confirm
+   export row count is read from Stage 1 `split_summary.csv` (340), IDs are
+   unique and unchanged in order from `test_record_ids.csv`, and all
+   probabilities are finite and within `[0,1]`.
+4. Run only the synthetic T08 unit tests before the code review. Confirm output
+   staging refuses overwrite and the manifest records source provenance,
+   frozen models/calibration/threshold verification, and `test_labels_loaded`
+   false. Do not run the production exporter during code review.
+5. After code review passes, the implementation agent may run the export once
+   with explicit user authorization. A separate output verifier then checks
+   the CSV header, 340 rows, ID order against saved test IDs, probability
+   bounds, absence of label columns, manifest, output hashes, and no overwrite.
+   Do not read `y_test.csv` or reconstruct the split. Record the known
+   row-level predictor/ID alignment limitation because the existing artifacts
+   have no shared row key.
+
+### T08 production output verification (2026-11-06)
+
+**Overall verdict: PASS — T08 complete.** The approved exporter reused the
+validated calibrated probabilities already saved by T07. It loaded only
+`ID`, `target`, and `calibrated_probability` from the T07 prediction file and
+did not read `y_test.csv` or materialize its `true_label` column.
+
+| Acceptance criterion | Verdict | Evidence |
+|---|---|---|
+| Exact assignment header and death-probability mapping | PASS | `submission.csv` header is `ID,LET_IS,ZSN,FIBR_PREDS`; `LET_IS` is mapped from calibrated `DEATH_BINARY`. |
+| Expected row count, unique IDs and saved test-ID order | PASS | 340 rows; unique IDs match `test_record_ids.csv` exactly and in order. |
+| Probability validity | PASS | All three probability columns are finite and within `[0,1]`. |
+| T07 probability source provenance | PASS | T07 model/calibration/threshold metadata, current bundle hashes, current X input hash, saved ID hash/order, row counts, and probability values passed checks. |
+| Test-label exclusion and frozen inference policy | PASS | No label input path is present; manifest records `test_labels_loaded: false` and `thresholds_applied: false`. No fitting, recalibration, or thresholding occurred. |
+| Output safety and provenance | PASS | Exactly `submission.csv` and `t08_run_manifest.json` are present; submission hash matches the manifest; exporter refuses overwrite. |
+| Synthetic tests and independent review | PASS | Nine synthetic tests passed. Independent pre-production code review and post-production output review both returned PASS. |
+| Predictor-to-ID correspondence limitation | DOCUMENTED | Existing inputs have no shared row key, so exact row-level correspondence cannot be independently proven; saved ID order was preserved and checked. |
+
+The production command was run once after code review. Files are in
+`stage12_t08_outputs/`; the run record is
+`logs/2026-11-06_t08_probability_export.log`.
 
 ### T06/T07 comprehensive implementation review (2026-11-06)
 

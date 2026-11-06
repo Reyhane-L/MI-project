@@ -1,0 +1,201 @@
+{
+  "stage": "T08",
+  "created_utc": "2026-11-06T19:58:27.262333+00:00",
+  "command": [
+    "/Users/rayhaneh/Documents/MI project/.venv/bin/python",
+    "mi_stage12_t08_probability_export.py",
+    "--acknowledge-approved-test-feature-use"
+  ],
+  "python": "3.14.7",
+  "packages": {
+    "python": "3.14.7",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "scikit-learn": "1.9.1",
+    "scipy": "1.18.1",
+    "joblib": "1.6.0",
+    "catboost": "1.2.10"
+  },
+  "freeze_revision": "non_tabpfn_v1",
+  "target_order": [
+    "DEATH_BINARY",
+    "ZSN",
+    "FIBR_PREDS"
+  ],
+  "models": {
+    "DEATH_BINARY": {
+      "model": "CatBoost tuned",
+      "parameters": {
+        "random_strength": 0.5,
+        "learning_rate": 0.03,
+        "l2_leaf_reg": 7,
+        "iterations": 250,
+        "depth": 6,
+        "border_count": 128,
+        "random_seed": 42,
+        "loss_function": "Logloss",
+        "eval_metric": "PRAUC",
+        "thread_count": 1,
+        "allow_writing_files": false
+      },
+      "tuned_configuration_provenance": {
+        "parameters": {
+          "random_strength": 0.5,
+          "learning_rate": 0.03,
+          "l2_leaf_reg": 7,
+          "iterations": 250,
+          "depth": 6,
+          "border_count": 128
+        },
+        "source": "stage6_catboost_outputs/tuning_results.csv",
+        "selected_outer_fold": 4,
+        "selection_rule": "Hamming medoid of five saved outer-fold best configurations; earliest fold breaks ties"
+      },
+      "categorical_handling": "Stage 6 CatBoostFrameTransformer; SEX and ECG morphology fields converted to stable strings and declared categorical",
+      "preprocessing": "fold-local model pipeline; no imputation required for CatBoost",
+      "class_weight": null,
+      "resampling": null
+    },
+    "ZSN": {
+      "model": "Random Forest tuned",
+      "parameters": {
+        "min_samples_leaf": 3,
+        "max_features": 0.5,
+        "max_depth": 5,
+        "class_weight": null,
+        "n_estimators": 200,
+        "random_state": 42,
+        "n_jobs": 1
+      },
+      "tuned_configuration_provenance": {
+        "parameters": {
+          "min_samples_leaf": 3,
+          "max_features": 0.5,
+          "max_depth": 5,
+          "class_weight": null
+        },
+        "source": "stage3_outputs/tuning_results.csv",
+        "selected_outer_fold": 4,
+        "selection_rule": "Hamming medoid of five saved outer-fold best configurations; earliest fold breaks ties"
+      },
+      "preprocessing": {
+        "continuous": "fold-local median imputation",
+        "ordinal_binary": "fold-local most-frequent imputation",
+        "nominal": "fold-local most-frequent imputation then one-hot with unknown ignored",
+        "scaling": "none"
+      },
+      "class_weight": null,
+      "resampling": null
+    },
+    "FIBR_PREDS": {
+      "model": "Random Forest preliminary",
+      "parameters": {
+        "n_estimators": 200,
+        "random_state": 42,
+        "max_features": "sqrt",
+        "class_weight": null,
+        "n_jobs": 1,
+        "max_depth": null,
+        "min_samples_leaf": 1,
+        "min_samples_split": 2,
+        "bootstrap": true
+      },
+      "preprocessing": {
+        "continuous": "fold-local median imputation",
+        "ordinal_binary": "fold-local most-frequent imputation",
+        "nominal": "fold-local most-frequent imputation then one-hot with unknown ignored",
+        "scaling": "none"
+      },
+      "class_weight": null,
+      "resampling": null
+    }
+  },
+  "calibration_method": "Platt (frozen in T06)",
+  "calibration_parameters": {
+    "DEATH_BINARY": {
+      "method": "Platt",
+      "input_transform": "logit(clipped_probability)",
+      "coefficient": 1.383763850146479,
+      "intercept": 0.7168447459104864,
+      "classes": [
+        0,
+        1
+      ],
+      "C": 1000000.0,
+      "solver": "lbfgs",
+      "max_iter": 1000,
+      "random_state": 42
+    },
+    "ZSN": {
+      "method": "Platt",
+      "input_transform": "logit(clipped_probability)",
+      "coefficient": 1.1188566321186695,
+      "intercept": 0.1678527360448639,
+      "classes": [
+        0,
+        1
+      ],
+      "C": 1000000.0,
+      "solver": "lbfgs",
+      "max_iter": 1000,
+      "random_state": 42
+    },
+    "FIBR_PREDS": {
+      "method": "Platt",
+      "input_transform": "logit(clipped_probability)",
+      "coefficient": 1.0244130169235026,
+      "intercept": -0.020040831098505896,
+      "classes": [
+        0,
+        1
+      ],
+      "C": 1000000.0,
+      "solver": "lbfgs",
+      "max_iter": 1000,
+      "random_state": 42
+    }
+  },
+  "thresholds_verified_but_not_applied": {
+    "DEATH_BINARY": 0.15333595513662462,
+    "ZSN": 0.16286457867666485,
+    "FIBR_PREDS": 0.07103628966266397
+  },
+  "probability_source": {
+    "status": "validated",
+    "source": "stage11_t07_outputs/test_predictions.csv",
+    "manifest": "stage11_t07_outputs/t07_run_manifest.json",
+    "selected_probability_rows_sha256": "df6a86fd5dbc85e3c63941859db42e12f3b1d4127a5eb34f6a3e524dba0b9a30",
+    "columns_loaded": [
+      "ID",
+      "target",
+      "calibrated_probability"
+    ],
+    "rows_per_target": 340,
+    "x_test_sha256": "aa2919d1878cead0f96cbebbfb48ed20441f8d8034288f409b3a629ab3b259f7",
+    "labels_loaded": false
+  },
+  "submission_columns": [
+    "ID",
+    "LET_IS",
+    "ZSN",
+    "FIBR_PREDS"
+  ],
+  "death_probability_mapping": "DEATH_BINARY calibrated probability -> LET_IS column",
+  "rows": 340,
+  "input_sha256": {
+    "stage1_outputs/test_record_ids.csv": "b2631c6ca1616c49d30cf38fa34bd3f357921b236d7a554439cd4fd4a2eebc62",
+    "stage1_outputs/X_test.csv": "aa2919d1878cead0f96cbebbfb48ed20441f8d8034288f409b3a629ab3b259f7"
+  },
+  "bundle_sha256": {
+    "DEATH_BINARY": "160423a365e5fa857c82e690832a78f46f6935041e6455aa7b4fb94416ab2b27",
+    "ZSN": "ac2be052a829c31e098ff78e8f20b91384678bda3b835bedf3fa92c7ef4c9c2d",
+    "FIBR_PREDS": "75ae48e9cc4210b3c51f6bbf493d070185242c750b8af6b0e2d303cdd3ef457f"
+  },
+  "submission_sha256": "8ec1d6d67e8bd75263203df87f0200966bff0b8ebf4abca68836c363c924d65c",
+  "test_labels_loaded": false,
+  "thresholds_applied": false,
+  "outputs": [
+    "submission.csv",
+    "t08_run_manifest.json"
+  ]
+}

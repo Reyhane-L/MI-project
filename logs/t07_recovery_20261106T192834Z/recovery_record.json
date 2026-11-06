@@ -1,0 +1,35 @@
+{
+  "recorded_utc": "2026-11-06T19:29:12.797096+00:00",
+  "stage": "T07 audited one-time recovery",
+  "authorization_basis": "The user states they obtained explicit TA authorization to proceed with an audited one-time recovery and rerun on the existing split despite uncertainty about the previous attempt. No separate TA document was supplied in this interaction.",
+  "recovery_decision": "Preserve an exact backup and metadata for the original marker, archive the active marker, then allow exactly one T07 invocation under the unchanged exclusive-create guard. The evaluator itself creates the new marker before reading inputs.",
+  "original_marker": ".stage11_t07_attempt_started",
+  "original_marker_content_utf8": "Started UTC: 2026-11-06T14:33:29.827890+00:00\n",
+  "original_marker_sha256": "d9ab289666e74976c4a8127eb965b3f54efa619b017964360cc001368c4607cb",
+  "original_marker_metadata": {
+    "size_bytes": 46,
+    "mode_octal": "0o644",
+    "uid": 501,
+    "gid": 20,
+    "inode": 30189598,
+    "atime_ns": 1793990926015299941,
+    "mtime_ns": 1793975609827952285,
+    "ctime_ns": 1793975609827952285
+  },
+  "backup_copy": "logs/t07_recovery_20261106T192834Z/original_attempt_marker.backup",
+  "archived_original_path": "logs/t07_recovery_20261106T192834Z/original_attempt_marker.archived",
+  "recovery_archive_state": "complete; exact backup and original marker archived",
+  "expected_models": {
+    "DEATH_BINARY": "CatBoost tuned",
+    "ZSN": "Random Forest tuned",
+    "FIBR_PREDS": "Random Forest preliminary"
+  },
+  "t06_freeze_revision": "non_tabpfn_v1",
+  "production_command": [
+    ".venv/bin/python",
+    "-B",
+    "mi_stage11_t07_evaluation.py",
+    "--acknowledge-separate-user-approval"
+  ],
+  "archived_original_sha256": "d9ab289666e74976c4a8127eb965b3f54efa619b017964360cc001368c4607cb"
+}

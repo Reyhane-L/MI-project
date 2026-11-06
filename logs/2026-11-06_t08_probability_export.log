@@ -1,0 +1,71 @@
+# T08 probability export implementation checkpoint — 2026-11-06
+
+## Specification and source assessment
+
+- Assignment Guide page 20's sample submission fields are `ID`, `LET_IS`,
+  `ZSN`, and `FIBR_PREDS`; `LET_IS` receives the calibrated probability for
+  `DEATH_BINARY`. The Stage 1 split summary records 340 test records.
+- T06 `non_tabpfn_v1` supplies CatBoost tuned / Random Forest tuned /
+  Random Forest preliminary bundles, each with frozen Platt calibration.
+- T07 probabilities were checked using only its run manifest, current T06
+  provenance, the saved test ID file, and selected `ID`, `target`, and
+  `calibrated_probability` columns from `test_predictions.csv`. The label
+  column was not loaded. All three targets had 340 finite bounded
+  probabilities whose ordered IDs match the saved ID list. T07 model,
+  calibration, threshold, bundle, and ID-input provenance matched the current
+  frozen T06 artifacts. The exporter additionally requires the current X input
+  hash to match T07's recorded feature-input hash before reusing probabilities.
+
+## Implementation
+
+- Added `mi_stage12_t08_probability_export.py`. It verifies the T06 freeze and
+  bundle/threshold metadata, then reuses T07 calibrated probabilities only if
+  provenance, count, probability bounds, and exact ID order validate. If T07
+  probabilities are unavailable or unsuitable, it uses only `X_test.csv`,
+  saved IDs, and frozen bundle `predict_probability()` APIs. It does not read
+  test labels, fit models/calibrators, or apply thresholds.
+- The exporter writes a staged `submission.csv` with exact header
+  `ID,LET_IS,ZSN,FIBR_PREDS` and a provenance manifest to a new
+  `stage12_t08_outputs/`; it refuses to overwrite an existing output
+  directory.
+- Added synthetic coverage for T07 reuse, fallback on missing/invalid T07
+  provenance, feature-hash mismatch, and misordered IDs; exact column
+  mapping/header; expected 340-row enforcement; unique/ordered IDs; finite
+  `[0,1]` values; approval gating; overwrite refusal; and selecting only
+  non-label columns from the T07 file.
+
+## Checks and limits
+
+- `PYTHONDONTWRITEBYTECODE=1 MPLCONFIGDIR=/private/tmp .venv/bin/python -B -m unittest discover -s tests -p 'test_stage12_t08_probability_export.py' -v`
+  Result: **9 synthetic tests passed**.
+- `git diff --check`: passed.
+- The production export was not run at this implementation-only checkpoint.
+  `y_test.csv` and test-label values were not accessed. Independent code review
+  was requested before export.
+
+## Reviewed production export
+
+- Independent code review: **PASS** before production export. The reviewer
+  confirmed T07 reuse provenance checks (current T06 models, calibration,
+  thresholds, bundle hashes, current X hash, current ID hash/order), fallback
+  inference uses only frozen calibrated bundle APIs, output validation is
+  complete, and no test-label path is used.
+- Production command, invoked once after review:
+
+```text
+PYTHONDONTWRITEBYTECODE=1 MPLCONFIGDIR=/private/tmp .venv/bin/python -B mi_stage12_t08_probability_export.py --acknowledge-approved-test-feature-use
+```
+
+- The exporter reused validated T07 probabilities (`probability_source.status`
+  is `validated`) and created `stage12_t08_outputs/submission.csv` plus
+  `stage12_t08_outputs/t08_run_manifest.json`. It did not use fallback model
+  inference, retrain, recalibrate, or apply thresholds.
+- Independent validation passed: exact header `ID,LET_IS,ZSN,FIBR_PREDS`,
+  340 rows, unique IDs matching saved test-ID order, finite bounded values,
+  manifest and submission hashes, and exact output membership. Manifest says
+  `test_labels_loaded: false`; the T07 CSV reader selected only ID, target,
+  and calibrated probability columns. No `y_test.csv` or test-label values
+  were accessed.
+- Independent output review: **PASS**. It confirmed all acceptance criteria
+  and noted the existing limitation that predictor-to-ID row correspondence
+  cannot be independently proven with no shared row key.
