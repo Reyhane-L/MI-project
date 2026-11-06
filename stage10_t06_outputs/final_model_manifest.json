@@ -1,0 +1,388 @@
+{
+  "stage": "T06",
+  "date_utc": "2026-11-05T21:05:38.821278+00:00",
+  "development_inputs": [
+    "stage1_outputs/X_train.csv",
+    "stage1_outputs/y_train.csv",
+    "stage1_outputs/train_record_ids.csv",
+    "stage1_outputs/column_dictionary.csv"
+  ],
+  "model_selection_development_summaries": [
+    "stage3_outputs/aggregate_metrics.csv",
+    "stage8_tabpfn_outputs/aggregate_metrics.csv"
+  ],
+  "no_stage9_predictions_used_as_outer_scores": true,
+  "targets": [
+    "DEATH_BINARY",
+    "ZSN",
+    "FIBR_PREDS"
+  ],
+  "models": {
+    "DEATH_BINARY": {
+      "model": "TabPFN 3.5",
+      "parameters": {
+        "random_state": 42,
+        "device": "auto",
+        "n_preprocessing_jobs": 1,
+        "memory_saving_mode": "auto",
+        "show_progress_bar": false
+      },
+      "native_categorical_columns": [
+        "SEX",
+        "ant_im",
+        "lat_im",
+        "inf_im",
+        "post_im"
+      ],
+      "category_vocabulary": "learned from each model's training partition only",
+      "class_weight": null,
+      "resampling": null
+    },
+    "ZSN": {
+      "model": "TabPFN 3.5",
+      "parameters": {
+        "random_state": 42,
+        "device": "auto",
+        "n_preprocessing_jobs": 1,
+        "memory_saving_mode": "auto",
+        "show_progress_bar": false
+      },
+      "native_categorical_columns": [
+        "SEX",
+        "ant_im",
+        "lat_im",
+        "inf_im",
+        "post_im"
+      ],
+      "category_vocabulary": "learned from each model's training partition only",
+      "class_weight": null,
+      "resampling": null
+    },
+    "FIBR_PREDS": {
+      "model": "Random Forest preliminary",
+      "parameters": {
+        "n_estimators": 200,
+        "random_state": 42,
+        "max_features": "sqrt",
+        "class_weight": null,
+        "n_jobs": 1,
+        "max_depth": null,
+        "min_samples_leaf": 1,
+        "min_samples_split": 2,
+        "bootstrap": true
+      },
+      "preprocessing": {
+        "continuous": "fold-local median imputation",
+        "ordinal_binary": "fold-local most-frequent imputation",
+        "nominal": "fold-local most-frequent imputation then one-hot with unknown ignored",
+        "scaling": "none"
+      },
+      "class_weight": null,
+      "resampling": null
+    }
+  },
+  "model_selection_evidence": {
+    "DEATH_BINARY": {
+      "selected_mean": 0.7499277818246388,
+      "selected_sd": 0.046979977496730205,
+      "alternatives": [
+        {
+          "model": "CatBoost tuned",
+          "mean": 0.7325901642360163,
+          "sample_sd": 0.05908262902519425
+        },
+        {
+          "model": "Random Forest tuned",
+          "mean": 0.6713209631223246,
+          "sample_sd": 0.03733013411834763
+        },
+        {
+          "model": "Extra Trees tuned",
+          "mean": 0.6690319927822909,
+          "sample_sd": 0.04704106058261594
+        },
+        {
+          "model": "Random Forest preliminary",
+          "mean": 0.667664496950297,
+          "sample_sd": 0.020260911601453498
+        },
+        {
+          "model": "Extra Trees preliminary",
+          "mean": 0.6556126029336655,
+          "sample_sd": 0.03799571712092623
+        },
+        {
+          "model": "Logistic regression",
+          "mean": 0.650696541851497,
+          "sample_sd": 0.030595760985530743
+        },
+        {
+          "model": "Dummy prior prevalence",
+          "mean": 0.15955882352941175,
+          "sample_sd": 0.002013685873180766
+        }
+      ],
+      "rationale": "TabPFN mean AP 0.7499 (fold SD 0.0470) exceeded the strongest saved alternative, CatBoost tuned (0.7326 +/- 0.0591). Five-fold estimates are descriptive, not significance tests."
+    },
+    "ZSN": {
+      "selected_mean": 0.5194422286939651,
+      "selected_sd": 0.0970961851237017,
+      "alternatives": [
+        {
+          "model": "Random Forest tuned",
+          "mean": 0.5017751338107764,
+          "sample_sd": 0.08287808309735747
+        },
+        {
+          "model": "Extra Trees tuned",
+          "mean": 0.48502746399047736,
+          "sample_sd": 0.0640705212219896
+        },
+        {
+          "model": "CatBoost tuned",
+          "mean": 0.478958315554173,
+          "sample_sd": 0.0487851131022507
+        },
+        {
+          "model": "Random Forest preliminary",
+          "mean": 0.4787984958999476,
+          "sample_sd": 0.08436143871441916
+        },
+        {
+          "model": "Extra Trees preliminary",
+          "mean": 0.4001028276931159,
+          "sample_sd": 0.036041335419105404
+        },
+        {
+          "model": "Logistic regression",
+          "mean": 0.31504657854712426,
+          "sample_sd": 0.029973368292396444
+        },
+        {
+          "model": "Dummy prior prevalence",
+          "mean": 0.225,
+          "sample_sd": 0.0016441676305145455
+        }
+      ],
+      "rationale": "TabPFN mean AP 0.5194 (fold SD 0.0971) exceeded the strongest saved alternative, Random Forest tuned (0.5018 +/- 0.0829). Five-fold estimates are descriptive, not significance tests."
+    },
+    "FIBR_PREDS": {
+      "selected_mean": 0.3010538306024738,
+      "selected_sd": 0.10790803176945198,
+      "alternatives": [
+        {
+          "model": "Extra Trees preliminary",
+          "mean": 0.30136509283267865,
+          "sample_sd": 0.12520576290175262
+        },
+        {
+          "model": "Extra Trees tuned",
+          "mean": 0.30079878905536306,
+          "sample_sd": 0.12323881026718178
+        },
+        {
+          "model": "TabPFN 3.5",
+          "mean": 0.29504003442704274,
+          "sample_sd": 0.06847419579246553
+        },
+        {
+          "model": "Random Forest tuned",
+          "mean": 0.27682978346679254,
+          "sample_sd": 0.0846933241187941
+        },
+        {
+          "model": "CatBoost tuned",
+          "mean": 0.26645642773698774,
+          "sample_sd": 0.06785233525281892
+        },
+        {
+          "model": "Logistic regression",
+          "mean": 0.24604677697252625,
+          "sample_sd": 0.06847310861755636
+        },
+        {
+          "model": "Dummy prior prevalence",
+          "mean": 0.09926470588235294,
+          "sample_sd": 0.0
+        }
+      ],
+      "rationale": "The user-specified preliminary Random Forest mean AP was 0.3011 (fold SD 0.1079); the highest saved alternative was Extra Trees preliminary at 0.3014 (fold SD 0.1252). This near tie is descriptive; the supplied finalist is retained without retuning. Five-fold estimates are descriptive, not significance tests."
+    }
+  },
+  "calibration_parameters": {
+    "DEATH_BINARY": {
+      "method": "Platt",
+      "input_transform": "logit(clipped_probability)",
+      "coefficient": 1.0106870563499797,
+      "intercept": -0.025789574776131675,
+      "classes": [
+        0,
+        1
+      ],
+      "C": 1000000.0,
+      "solver": "lbfgs",
+      "max_iter": 1000,
+      "random_state": 42
+    },
+    "ZSN": {
+      "method": "Platt",
+      "input_transform": "logit(clipped_probability)",
+      "coefficient": 1.076092933001038,
+      "intercept": 0.07629793461356098,
+      "classes": [
+        0,
+        1
+      ],
+      "C": 1000000.0,
+      "solver": "lbfgs",
+      "max_iter": 1000,
+      "random_state": 42
+    },
+    "FIBR_PREDS": {
+      "method": "Platt",
+      "input_transform": "logit(clipped_probability)",
+      "coefficient": 1.0244130169235026,
+      "intercept": -0.020040831098505896,
+      "classes": [
+        0,
+        1
+      ],
+      "C": 1000000.0,
+      "solver": "lbfgs",
+      "max_iter": 1000,
+      "random_state": 42
+    }
+  },
+  "outer_cross_fitting": {
+    "folds": 5,
+    "shuffle": true,
+    "random_state": 42,
+    "stratified": true
+  },
+  "inner_calibrator_training": {
+    "folds": 5,
+    "shuffle": true,
+    "random_state": 42,
+    "stratified": true
+  },
+  "final_calibrator_training": {
+    "full_development_oof_folds": 5,
+    "random_state": 42
+  },
+  "calibration_methods": [
+    "Raw",
+    "Platt",
+    "Isotonic",
+    "Beta",
+    "Temperature"
+  ],
+  "optional_calibrator_screen": {
+    "pooled_brier_improvement_relative_to_platt": ">= 1%",
+    "pooled_log_loss_improvement_relative_to_platt": ">= 1%",
+    "per_metric_fold_wins": "at least 4/5",
+    "qualification_results": {
+      "DEATH_BINARY": {
+        "Isotonic": {
+          "pooled_brier_relative_improvement": -0.010127023023390826,
+          "pooled_log_loss_relative_improvement": -0.1144760899326561,
+          "fold_brier_wins_vs_platt": 1,
+          "fold_log_loss_wins_vs_platt": 0,
+          "qualifies": false
+        },
+        "Beta": {
+          "pooled_brier_relative_improvement": -0.0019194869277959136,
+          "pooled_log_loss_relative_improvement": -0.0036169908632364585,
+          "fold_brier_wins_vs_platt": 0,
+          "fold_log_loss_wins_vs_platt": 2,
+          "qualifies": false
+        },
+        "Temperature": {
+          "pooled_brier_relative_improvement": 0.00017821620264062198,
+          "pooled_log_loss_relative_improvement": 0.0005486792405282369,
+          "fold_brier_wins_vs_platt": 3,
+          "fold_log_loss_wins_vs_platt": 3,
+          "qualifies": false
+        }
+      },
+      "ZSN": {
+        "Isotonic": {
+          "pooled_brier_relative_improvement": -0.002725520813759597,
+          "pooled_log_loss_relative_improvement": -0.013965713415463571,
+          "fold_brier_wins_vs_platt": 1,
+          "fold_log_loss_wins_vs_platt": 2,
+          "qualifies": false
+        },
+        "Beta": {
+          "pooled_brier_relative_improvement": -0.0009502973459698475,
+          "pooled_log_loss_relative_improvement": 2.4284326881360487e-05,
+          "fold_brier_wins_vs_platt": 2,
+          "fold_log_loss_wins_vs_platt": 2,
+          "qualifies": false
+        },
+        "Temperature": {
+          "pooled_brier_relative_improvement": -0.0017656445447841085,
+          "pooled_log_loss_relative_improvement": -0.0018366128884171973,
+          "fold_brier_wins_vs_platt": 1,
+          "fold_log_loss_wins_vs_platt": 1,
+          "qualifies": false
+        }
+      },
+      "FIBR_PREDS": {
+        "Isotonic": {
+          "pooled_brier_relative_improvement": -0.02040804026511188,
+          "pooled_log_loss_relative_improvement": -0.08371823802935179,
+          "fold_brier_wins_vs_platt": 0,
+          "fold_log_loss_wins_vs_platt": 0,
+          "qualifies": false
+        },
+        "Beta": {
+          "pooled_brier_relative_improvement": -0.002645383417987407,
+          "pooled_log_loss_relative_improvement": -0.0030715873648724653,
+          "fold_brier_wins_vs_platt": 0,
+          "fold_log_loss_wins_vs_platt": 1,
+          "qualifies": false
+        },
+        "Temperature": {
+          "pooled_brier_relative_improvement": 0.007417434113078802,
+          "pooled_log_loss_relative_improvement": 0.007082130613688948,
+          "fold_brier_wins_vs_platt": 3,
+          "fold_log_loss_wins_vs_platt": 4,
+          "qualifies": false
+        }
+      }
+    },
+    "required_method_frozen": "Platt; optional screen never overrides it"
+  },
+  "threshold_rule": {
+    "source": "pooled outer cross-fitted Platt OOF",
+    "minimum_sensitivity": 0.8,
+    "selection": "maximize specificity; among ties choose largest threshold",
+    "clinical_note": "0.80 is the selected operating-point assumption, not a universal clinical requirement."
+  },
+  "packages": {
+    "python": "3.14.7",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "scikit-learn": "1.9.1",
+    "scipy": "1.18.1",
+    "joblib": "1.6.0",
+    "tabpfn": "9.2.0",
+    "matplotlib": "3.11.2"
+  },
+  "warnings": [],
+  "expected_outputs": [
+    "final_model_selections.csv",
+    "calibration_method_comparison.csv",
+    "cross_fitted_oof_predictions.csv",
+    "selected_thresholds.csv",
+    "final_model_manifest.json",
+    "death_binary_bundle.joblib",
+    "zsn_bundle.joblib",
+    "fibr_preds_bundle.joblib",
+    "death_binary_raw_vs_platt_reliability.png",
+    "zsn_raw_vs_platt_reliability.png",
+    "fibr_preds_raw_vs_platt_reliability.png",
+    "fit_warnings.csv",
+    "t06_freeze_report.md"
+  ]
+}

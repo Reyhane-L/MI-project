@@ -1,0 +1,4 @@
+target,selection_criterion,source,minimum_sensitivity,threshold,status,constraint,sensitivity,specificity,true_negatives,false_positives,false_negatives,true_positives,accuracy,precision,f1
+DEATH_BINARY,maximize specificity subject to minimum sensitivity,pooled five-fold outer Platt OOF,0.8,0.19570889641360542,constraint_met,sensitivity >= 0.80,0.8018433179723502,0.8670166229221348,991,152,43,174,0.8566176470588235,0.5337423312883436,0.6408839779005525
+ZSN,maximize specificity subject to minimum sensitivity,pooled five-fold outer Platt OOF,0.8,0.1730747520586201,constraint_met,sensitivity >= 0.80,0.8006535947712419,0.49146110056925996,518,536,61,245,0.5610294117647059,0.31370038412291934,0.45078196872125115
+FIBR_PREDS,maximize specificity subject to minimum sensitivity,pooled five-fold outer Platt OOF,0.8,0.07103628966266397,constraint_met,sensitivity >= 0.80,0.8,0.4555102040816327,558,667,27,108,0.48970588235294116,0.1393548387096774,0.23736263736263735

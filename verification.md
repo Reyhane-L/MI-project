@@ -53,6 +53,158 @@ final report, required deliverables, reproducibility record, and complete
 diff. Record a separate verdict and evidence for each task; a pass for one
 task does not imply a pass for another.
 
+## T06 — Development-only finalist and calibration freeze
+
+1. Read `mi_stage10_t06_freeze.py`, `tests/test_stage10_t06_freeze.py`, the
+   dated T06 implementation log, and the T06 checklist. Do not invoke the
+   approval-gated model run, run T07, create `stage10_t06_outputs/`, or inspect
+   any held-out rows.
+2. Confirm all runtime data paths are explicit Stage 1 development paths:
+   `X_train.csv`, `y_train.csv`, `train_record_ids.csv`, and
+   `column_dictionary.csv`, plus the saved development-only Stage 3 and Stage 8
+   aggregate AP summaries used for finalist evidence. Confirm no Stage 9
+   prediction input is consumed and no held-out input is referenced.
+3. Check that the fixed models and parameters match the T06 checklist:
+   TabPFN 3.5 (`random_state=42`, `device="auto"`,
+   `n_preprocessing_jobs=1`, `memory_saving_mode="auto"`) for mortality and
+   `ZSN`; preliminary Random Forest (200 trees, seed 42, `max_features="sqrt"`,
+   no class weighting/resampling, Stage 3 fold-local preprocessing) for
+   `FIBR_PREDS`. Verify native TabPFN categorical categories are learned from
+   each fit partition, and inference uses the saved full-development schema.
+4. Review the nested cross-fitting path: five seed-42 stratified outer folds;
+   fresh five-fold stratified inner OOF base predictions from fixed settings
+   for each outer training partition; each calibrator fit only on inner OOF
+   scores/labels; outer validation scored once by a model fitted only on its
+   outer training partition. Verify ID/label/fold alignment and one outer OOF
+   row per eligible development ID/target. Confirm calibrated output
+   probabilities are finite and bounded before they are written.
+5. Run only the focused unit tests:
+   `.venv/bin/python -m unittest discover -s tests -p 'test_stage10_t06_freeze.py' -v`.
+   Confirm the tests use an injected deterministic estimator / tiny dummy
+   model and do not call TabPFN or fit a Random Forest on project data. Check
+   metric/confusion calculations, the two-part optional-calibrator criterion,
+   threshold sensitivity/specificity and tie-breaking, fold isolation, OOF ID
+   alignment, category handling, and joblib bundle prediction.
+6. If the user later approves and a T06 output set exists, review only the
+   explicitly named artifacts listed by `OUTPUT_FILES` in the script. Check
+   exact output-set membership, manifest/warnings/config provenance, one
+   calibration-comparison row per target/method, and five fold-level metric
+   records embedded in each row. Check the selection CSV contains saved
+   development AP means/SDs and a rationale, and that the OOF CSV has one row
+   per eligible development ID/target, aligned to labels/folds with finite
+   bounded raw/calibrated probabilities. Verify selected threshold metrics
+   and confusion counts, including unmet-constraint reporting, Platt freeze
+   statements, the three loadable bundles, saved calibration parameters, and
+   reliability plots. Do not regenerate outputs. Recompute saved metrics from
+   the OOF CSV and verify the optional-method screen independently.
+7. Return PASS only if the implementation, tests, and any approved artifacts
+   meet all T06 criteria and no material finding remains. Record evidence and
+   verdict here; implementation status must remain pending until this fresh
+   independent review passes. Do not infer approval for T07 from a T06 pass.
+
+### T06 implementation-only review record (2026-11-05)
+
+- Independent read-only code review: **PASS for implementation**, after two
+  findings were fixed. The reviewer confirmed that pooled and per-fold
+  comparison records retain accuracy, precision, recall, specificity, F1, and
+  TN/FP/FN/TP at 0.5; and that zero-minimum-sensitivity thresholding includes
+  an all-negative cutoff.
+- The reviewer checked the fixed-finalist evidence against the saved Stage 3
+  and Stage 8 aggregates and found no other material implementation or
+  leakage issue. Its focused T06 test run passed 14 tests.
+- The implementation session reran the combined Stage 10 suite: 22 tests
+  passed. Pylance syntax validation and diagnostics were clean.
+- No finalist models were fitted and no T06 output directory/artifact exists.
+  Thus output consistency, actual bundle loading from generated files, and
+  run-time warning/provenance checks are still pending. T06 is **not complete**;
+  this record does not authorize T07 or held-out access.
+
+### T06 memory-lifecycle correction review (2026-11-05)
+
+- Independent read-only code review: **PASS for the memory-lifecycle and
+  output-staging correction**. The reviewer confirmed that inner/outer
+  estimators and final estimator/bundle references are released in `finally`
+  blocks, and that staged output is published only after the expected files
+  exist. The associated injected-estimator tests cover cleanup calls and
+  sequential release.
+- The implementation session reran
+  `PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -B -m unittest discover -s tests -p 'test_stage10_t06_freeze.py' -v`:
+  **16 tests passed**. AST parsing and `git diff --check` passed; the known
+  category-handling `Pandas4Warning` remains.
+- No finalist fit/retry, T06 artifact generation, held-out access, or T07 run
+  occurred. `stage10_t06_outputs/` remains absent. This review does not verify
+  generated artifacts or complete T06; a newly approved development run and
+  independent output checks remain pending.
+
+### T06 generated-output verification (2026-11-06)
+
+**Overall verdict: FAIL.** The independent reviewer used only the named T06
+outputs and explicit Stage 1 development files.
+
+| Acceptance criterion | Verdict | Evidence |
+|---|---|---|
+| Explicit development-only inputs, fixed finalists/configurations, fold-local categorical schema, and nested five-fold cross-fitting | PASS | Source review matched the checklist; no held-out file was accessed. |
+| Focused injected-estimator tests | PASS | 16 tests passed; the known category-handling `Pandas4Warning` appeared. |
+| Exact output-set membership, manifest expected-output list, and reliability PNGs | PASS | Exactly 13 `OUTPUT_FILES`; all three plots are valid PNGs. |
+| OOF ID/label/fold alignment and one prediction per eligible record/target | PASS | 4,080 rows (1,360 per target); labels, IDs, outer folds, and final-calibrator folds match the development files and recomputed seed-42 folds. |
+| Probability validity | PASS | All six probability columns are finite and in `[0,1]`. |
+| Calibration comparisons and optional-method screens | PASS | 15 target/method rows with five fold records each; independently recomputed pooled/fold metrics had zero mismatches; all nine optional screens match and none qualifies. |
+| Finalists, saved development AUPRC evidence, Platt freeze, and thresholds | PASS | Configurations/rationales match; Platt remains frozen; independently recomputed thresholds/metrics match and meet 0.80 sensitivity. |
+| Manifest, provenance, warnings, and report consistency | PASS | Manifest and warning CSV agree; zero fit warnings; provenance/configurations/freeze statements are consistent. |
+| Three bundles load with ordinary `joblib.load` and predict valid probabilities | FAIL | Each bundle raises `AttributeError: module '__main__' has no attribute 'FinalModelBundle'` in a fresh ordinary loader. A temporary `__main__` alias allowed each bundle to score two development-only rows, but that workaround does not satisfy the requirement. |
+| Held-out boundary and T07 restriction | PASS | No held-out files were accessed; T07 was not run. |
+
+At this verification stage, the bundle import-path defect blocked T06. The
+generated artifacts were preserved. An importable bundle class and
+fresh-process serialization regression test were added; the focused suite
+passed 17 tests, and an independent code review passed. The user then approved
+replacement of only the three bundle files, which were reserialized without
+model fitting. The independent follow-up verification below resolves the
+remaining criterion.
+
+### T06 bundle serialization fix review (2026-11-06)
+
+- Independent read-only code review: **PASS for the serialization fix**. Direct
+  script execution imports `FinalModelBundle` from
+  `mi_stage10_t06_bundle.py`; the freeze module re-exports it; and the
+  regression test loads a script-style serialization in a fresh Python process
+  with ordinary `joblib.load`, without a `__main__` alias.
+- The focused suite passed 17 tests; syntax and whitespace checks passed.
+- This review did not change the earlier generated-output verdict: at the time
+  of that review the three existing bundle files still used the invalid
+  `__main__` path. The user subsequently approved reserializing only those
+  three files. See the independent follow-up verification below.
+
+### T06 repaired-bundle independent follow-up (2026-11-06)
+
+**Overall follow-up verdict: PASS.** This resolves the only failure in the
+initial generated-output verification. Taken together, the initial verification
+and this follow-up establish T06 acceptance.
+
+| Follow-up criterion | Verdict | Evidence |
+|---|---|---|
+| Ordinary fresh-process loading, without `__main__` alias | PASS | Each bundle loaded in its own fresh subprocess as `mi_stage10_t06_bundle.FinalModelBundle`. |
+| Bundle target/model/calibration/threshold metadata | PASS | Target, model, Platt method/parameters, threshold, and threshold status matched the manifest and selected-threshold row. |
+| Valid prediction from development-only sample | PASS | Each bundle produced three finite `[0,1]` probabilities from the first three rows of `stage1_outputs/X_train.csv`. |
+| Exact Stage 10 output membership | PASS | `OUTPUT_FILES` and the output directory contained the same 13 files; no missing, extra, non-file, or temporary repack entries. |
+| Held-out boundary and no T07 | PASS | No held-out artifacts were accessed; T07 was not run. |
+
+The independent reviewer ran the bundles sequentially with offline flags and
+made no model fits or artifact changes. Example probabilities were
+`DEATH_BINARY`: 0.024386, 0.031072, 0.000309;
+`ZSN`: 0.682371, 0.076316, 0.075347;
+`FIBR_PREDS`: 0.093561, 0.008772, 0.036415.
+
+### T06 final status
+
+**PASS — T06 complete.** The initial generated-output review passed all
+criteria except ordinary loading of the three bundles. After the approved
+serialization-only repair, independent fresh-process load and prediction
+checks passed, exact output membership remained valid, and no other artifact
+was regenerated. The focused test suite passes 17 tests. No test partition was
+accessed. This does not authorize T07; that task remains gated by separate
+explicit user approval.
+
 ## Additional Stage 6 — CatBoost comparison
 
 1. Review `mi_stage6_catboost.py`, its run log, and the nine named artifacts
@@ -79,3 +231,48 @@ task does not imply a pass for another.
    matched-fold Log Loss for all six comparators, paired differences with lower
    better, AP-only tuning, and the updated report/plot. Comparator refits must
    use saved settings on the same development outer folds and preserve warnings.
+
+## Additional Stage 7 — FIBR_PREDS diagnostics
+
+1. Review `mi_stage7_fibr_diagnostics.py`, its dated run log, and only the
+   explicitly named artifacts under `stage7_fibr_diagnostics_outputs/`.
+   Do not enumerate Stage 1 files or access `X_test.csv`/`y_test.csv`.
+2. Confirm all inputs are development artifacts; forbidden predictors are
+   rejected; folds are deterministic, stratified, and matched against saved
+   fold signatures; Stage 6 OOF IDs, labels, and fold memberships align.
+3. Confirm group summaries, missingness rates, IQR outlier counts,
+   validation-fold AP permutation scores, stability, and SHAP calculations.
+   For SHAP, the reference sample must come from the matching training fold.
+4. Confirm ablations are pre-specified, use saved fold parameters, fit
+   preprocessing inside each fold, and are reported as exploratory rather
+   than selected winners. Check AP, AUROC, Brier, and Log Loss across all five
+   folds for each candidate.
+5. Validate five folds per model, one fold metric per model/fold, expected
+   output row counts, finite metric values, warning/failure visibility, and no
+   record identifiers in diagnostic outputs. Inspect the report and plots.
+6. Return a separate PASS/FAIL for Stage 7. Do not change implementation
+   outputs or task status during independent verification.
+
+## Additional Stage 8 — TabPFN experiment
+
+1. Review `mi_stage8_tabpfn.py`, its dated run log, configuration and report,
+   and only the explicitly named Stage 8 outputs. Do not inspect locked-test
+   records or regenerate outputs.
+2. Confirm official compatibility/license review and the recorded user
+   approval; confirm installed package versions and that existing packages
+   were not silently upgraded.
+3. Confirm explicit development-only inputs, no locked-test access, the three
+   required targets, seed-42 five-fold stratified CV, sequential execution,
+   and matching-fold comparator checks. Check the documented limitation that
+   prior comparator folds lack record-level IDs and were reconstructed.
+4. Confirm native numerical/categorical/missing handling, fold-local category
+   vocabulary behavior, no unnecessary imputation/scaling/encoding, no class
+   weights or tuning, and fixed threshold 0.5.
+5. Check all 15 fold rows and recompute AP, AUROC, Brier, Log Loss, precision,
+   recall, F1, accuracy, and confusion counts from validation probabilities
+   and labels. Confirm summaries include mean and sample SD.
+6. Check OOF uniqueness and ID/label/fold alignment to development records,
+   paired comparisons by matching fold, required output files, plot/report,
+   memory/runtime evidence, limitations, and no significance claims.
+7. Return a separate PASS/FAIL for Stage 8. Do not change implementation
+   outputs or task status during independent verification.

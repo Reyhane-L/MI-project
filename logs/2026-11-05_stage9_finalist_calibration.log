@@ -1,0 +1,111 @@
+# Stage 9 finalist calibration comparison — implementation record
+
+## Scope and status
+
+- Added `mi_stage9_finalist_calibration.py` for the provisional candidate pairs:
+  DEATH_BINARY (TabPFN 3.5, CatBoost tuned), ZSN (TabPFN 3.5, Random Forest
+  tuned), and FIBR_PREDS (Extra Trees preliminary, Random Forest preliminary).
+- The script uses only Stage 1 development artifacts and saved development
+  tuning settings. It contains no held-out data paths and refuses to overwrite
+  a Stage 9 output directory.
+- No Stage 9 output directory has been created. The user approved the
+  development-only nested fit run, with no test access, identical
+  target-level outer folds, calibrator training confined to outer training
+  data, raw/calibrated AP, AUROC, Brier, and Log Loss, preserved prior
+  outputs, and fold-level records. No dependencies or weights were
+  downloaded; the existing TabPFN cache was confirmed present (876,028,347
+  bytes).
+- No prior stage outputs, task checklists, or handoff files were modified.
+
+## Method design
+
+- Five seed-42 stratified outer folds estimate development-only performance.
+- Within each outer training partition, four-fold stratified OOF base
+  probabilities train a sigmoid/Platt calibrator. Each candidate is then
+  refit on the complete outer training partition and scored once on the
+  untouched outer validation fold. All learned imputation/encoding remains in
+  the existing tree model pipelines. TabPFN uses its existing native
+  categorical handling.
+- Tuned candidate settings are taken from the saved fold-specific Stage 3 or
+  Stage 6 development tuning records for the corresponding outer fold; they
+  are not retuned in this calibration comparison. Since these settings were
+  selected using the full outer training partition, inner calibration scores
+  are not fully independent of labels used in setting selection. The untouched
+  outer validation fold still evaluates the full procedure; final fitting
+  should freeze or reselect hyperparameters inside its calibration folds.
+  Preliminary candidates use their recorded fixed defaults.
+- Outputs, when authorized and run, will include candidate OOF predictions,
+  fold metrics, pooled summaries, fold aggregates, warnings, and a concise
+  report. AP remains the primary metric; AUROC, Brier, Log Loss, ECE,
+  calibration slope/intercept diagnostics, and fixed-0.5 threshold metrics are
+  supplemental. Candidate/model/calibration/threshold choices remain
+  provisional until separately reviewed and frozen.
+
+## Checks so far
+
+- `.venv/bin/python -m py_compile mi_stage9_finalist_calibration.py` — passed
+  after the final cleanup.
+- `git diff --check -- mi_stage9_finalist_calibration.py
+  logs/2026-11-05_stage9_finalist_calibration.log` — passed.
+- First run command, after user approval of the nested development-only fits:
+  `env SKB_DATA_DIRECTORY=/private/tmp/skrub-stage8
+  TABPFN_MODEL_CACHE_DIR=/private/tmp/tabpfn-stage8-cache
+  MPLCONFIGDIR=/private/tmp/mi-stage9-mplconfig
+  .venv/bin/python mi_stage9_finalist_calibration.py`.
+- The run was manually interrupted after approximately 30 seconds when the
+  independent reviewer found static issues. It stopped during the first
+  TabPFN inner-fold prediction with `KeyboardInterrupt`; a candidate fit had
+  started, but no complete candidate fold evaluation finished and no output
+  directory/artifacts were written (output writing occurs only after all fits
+  and alignment checks). This interruption followed the
+  user-approved compute scope and is recorded, not a model result.
+- Planned evaluation size: six candidate/target pairs × five outer folds ×
+  (four inner calibration fits + one outer refit) = 150 base-model fits,
+  including 50 TabPFN fits. Independent static review initially failed on the
+  expected-ID alignment and calibration-setting caveat; both were corrected.
+  Fresh independent static recheck passed before the full rerun resumed.
+- Second run attempt used the same command and environment. It completed the
+  DEATH_BINARY TabPFN nested candidate (25 fits) and stopped on the first
+  CatBoost tuned inner fit with exit 1 after about four minutes. CatBoost
+  requires `classifier__cat_features=stage6.CATEGORICAL` as a fit argument on
+  its sklearn pipeline; without it, the fixed missing-category token was
+  treated as numeric. No output directory or artifacts were written. The
+  script now passes the required fit metadata through a shared helper. This
+  failed run and the 25 completed TabPFN fits are retained as run evidence;
+  they are not reported as candidate results because the full candidate
+  comparison did not complete.
+- The focused CatBoost fit correction passed independent static recheck before
+  the successful compute run.
+- The complete approved rerun then succeeded with the same command and
+  temporary Skrub/TabPFN/Matplotlib directories. Approximate process wall time
+  was 17 minutes 40 seconds (no internal timer was added). It completed all
+  150 base-model fits and all 30 candidate/outer-fold evaluations and wrote
+  outputs only after validation.
+- TabPFN emitted the same captured `UserWarning` in its ten candidate outer
+  folds (five per target): CPU execution with more than 1,000 samples may be
+  slow. No other model fit warnings were captured. `warnings.csv` preserves
+  these ten rows. No dependencies or model weights were downloaded during
+  the run.
+- Output checks passed: 8,160 unique OOF target/model/ID rows, 30 fold rows
+  (five per candidate), 12 pooled summaries, six fold aggregates, and ten
+  warning rows. A read-only verifier checked actual eligible development IDs,
+  labels, exact seed-42 outer fold membership, finite/bounded probabilities,
+  and recomputed AP/AUROC/Brier/Log Loss for both probability stages on every
+  fold (294 checks passed). The first verifier pass used unclipped raw
+  probabilities for Log Loss and differed by at most 2.6e-8; rerunning with
+  the script's declared 1e-6 probability clipping passed all 294 checks. The
+  import-based version check initially hit Skrub's default home-directory
+  permission; package metadata checks then passed without importing packages.
+- Environment: Python 3.14.7 on macOS 15.5 arm64; NumPy 2.5.4, pandas 3.1.0,
+  scikit-learn 1.9.1, CatBoost 1.2.10, TabPFN 9.2.0, PyTorch 2.15.0, and
+  MLX 0.32.4.
+- Added `stage9_results.md` as a new companion result artifact derived from
+  the completed outputs; it reports fold mean/sample-SD AP, AUROC, Brier, and
+  Log Loss before/after sigmoid, plus pooled OOF ECE/slope/intercept. No prior
+  stage output or Stage 9 numeric result was changed.
+- Independent static review passed before the successful run. Independent
+  generated-artifact review also passed: it verified all 30 candidate folds,
+  all 8,160 OOF rows against development IDs/labels/folds, and recomputed raw
+  and sigmoid AP, AUROC, Brier, and Log Loss for every fold. The reviewer
+  confirmed prior-stage outputs were unchanged and no held-out files were
+  accessed. No T06 freeze or test access is claimed.

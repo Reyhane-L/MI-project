@@ -1,0 +1,37 @@
+# Stage 7 FIBR_PREDS diagnostic analysis
+
+## Scope
+
+- Development-only exploratory analysis requested by the Stage 7 prompt.
+- No held-out test artifacts were opened, enumerated, read, or hashed.
+- No dependencies were installed. No existing output directory was modified.
+- Implementation: `mi_stage7_fibr_diagnostics.py`; expected outputs are isolated in `stage7_fibr_diagnostics_outputs/`.
+
+## Static review and compilation
+
+- Independent static reviewer: PASS; initially noted pooled-IQR count naming, which was corrected to use the 1.5×IQR rule. Reviewer rechecked the focused correction and passed.
+- `.venv/bin/python -m py_compile mi_stage7_fibr_diagnostics.py`: exit 0.
+- Explicit development inputs only: Stage 1 `X_train.csv`, `y_train.csv`, `train_record_ids.csv`, and `column_dictionary.csv`; Stage 3, 4, and 6 development fold/tuning/OOF summaries.
+
+## First bounded run (failed, retained)
+
+- Command: `.venv/bin/python mi_stage7_fibr_diagnostics.py`
+- Exit: 1 after 24 seconds.
+- Output: Matplotlib font cache notice, then CatBoost error at TreeSHAP calculation: `Binary classification loss/metrics require label data`.
+- No output directory was created because execution stopped before artifact writing.
+- Corrective change: attach the matching outer validation labels to the validation CatBoost `Pool` required by this binary-classification SHAP API. Labels are not features; the model is already fit and the training-fold-only reference pool remains unchanged.
+- Re-run and independent review of this corrective change pending.
+
+## Successful bounded run and artifact validation
+
+- Command: `.venv/bin/python mi_stage7_fibr_diagnostics.py`
+- Exit: 0 after approximately 75 seconds.
+- Scope: 1,360 eligible development records (135 positives), five folds, three model comparisons; 15 fold metric rows, 15 ablation fold rows, 1,530 permutation rows, and 510 fold-level SHAP summaries. All fold AP/AUROC/Brier/Log Loss values are present.
+- Retained runtime warnings: pandas `PerformanceWarning` while adding training-fold missingness flags to wide DataFrames (frame fragmentation/performance only); no fit warnings or failed folds recorded in output tables.
+- Output validation read only explicitly named Stage 7 output files. All expected CSVs, report, and four initial plots were present. Fold and ablation counts matched 5 per model/variant. No IDs are exported in sensitivity summary.
+- CatBoost tuned fold metrics were checked by the script against saved Stage 6 metrics; stage fold signatures and OOF labels/fold membership were checked by the script.
+- Visual review found the initial numeric group distribution image had labels on the wrong axis. The original image is preserved. Added a corrected plot at `fibr_group_distributions_corrected.png` from explicit development inputs; the report/source now points readers to that image.
+- Plot-only correction command exited 0; Matplotlib emitted a non-writable default cache notice and deprecation warnings for `vert` in the standalone plot-only code. The maintained Stage 7 script now uses the supported horizontal orientation API; the corrected artifact is visually reviewed.
+- No test partition was accessed, no packages installed, and no established output was deleted or replaced.
+- Independent review of implementation and generated artifacts: PASS. Reviewer confirmed all five folds per model and ablation, no patient ID columns in reviewed CSVs, no fit/permutation/ablation warnings, the corrected report reference, and visually rendered diagnostic plots. Test partition remained untouched.
+- Final source syntax check after the horizontal plot API/report updates: `.venv/bin/python -m py_compile mi_stage7_fibr_diagnostics.py`, exit 0.

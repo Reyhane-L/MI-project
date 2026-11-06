@@ -1,0 +1,51 @@
+# Stage 10 calibration comparison — run record
+
+## Scope and safeguards
+
+- Planned fixed base models: TabPFN 3.5 for `DEATH_BINARY` and `ZSN`, and
+  preliminary Random Forest for `FIBR_PREDS`, per the Stage 10 direction.
+- The script reads only explicit Stage 1 development artifacts, saved Stage 9
+  OOF raw probabilities, and the Stage 3 source needed to reconstruct the
+  preliminary Random Forest pipeline. It does not reference held-out paths.
+- New outputs are isolated in `stage10_calibration_comparison_outputs/`; the
+  script refuses to run if that directory already exists. No Stage 9 or prior
+  outputs are modified. No dependency install, model-weight download, or
+  external access is planned.
+- Stage 9 raw outer OOF predictions and target-level seed-42 five-fold outer
+  assignments are reused unchanged. For each target/outer fold, four inner
+  fold-local model fits regenerate training-side scores for Platt, isotonic,
+  constrained Beta, and temperature calibrators. Outer validation rows do not
+  fit the calibrators.
+- The provisional decision screen operationalizes “meaningful and stable” as
+  at least 1% pooled improvement in both Brier and Log Loss and wins in at
+  least four of five folds on both. Raw is recommended only when it has lower
+  pooled Brier and Log Loss and wins at least four of five folds on both.
+  Otherwise Platt is the default if alternatives are mixed or similar. This is
+  descriptive, not a significance test.
+- Beta calibration uses `scipy.optimize` with nonnegative coefficients on
+  `log(p)` and `-log(1-p)`, enforcing a monotone mapping without an extra
+  package. Temperature scaling uses a positive scalar on `logit(p)` with no
+  intercept. All methods use the same outer raw probabilities.
+- Full-development model/calibrator bundles will be prepared using the
+  selected fixed base models and development OOF scores only. These artifacts
+  do not authorize test access or constitute a one-time held-out evaluation.
+
+## Preflight and helper tests
+
+- `.venv/bin/python -m py_compile mi_stage10_calibration_comparison.py` —
+  passed.
+- `env SKB_DATA_DIRECTORY=/private/tmp/mi-stage10-skrub
+  MPLCONFIGDIR=/private/tmp/mi-stage10-mplconfig .venv/bin/python -m unittest
+  discover -s tests -p 'test_stage10_calibration.py' -v` — 8 tests passed.
+- A no-fit preflight validated 9 checks: Stage 9 selected candidate OOF ID
+  alignment, exact outer fold membership, and JSON-safe estimator parameter
+  extraction for all three targets. It confirmed the Stage 10 output
+  directory did not exist. No model fitting occurred in preflight.
+- Initial checks captured package metadata already installed in `.venv`:
+  scikit-learn 1.9.1, SciPy 1.18.1, TabPFN 9.2.0, and CatBoost 1.2.10.
+  `betacal` is not installed and is not needed.
+
+## Model run and artifact validation
+
+- Pending. Record command, per-target/fold completion, warning/error evidence,
+  runtime, full-development bundle status, output counts, and validation here.

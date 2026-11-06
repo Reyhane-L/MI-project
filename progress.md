@@ -70,6 +70,80 @@ Harness created. Existing implementation covers Stages 1–4; the final calibrat
   `1e-12`. Independent review passed; details are in
   `logs/2026-11-05_stage6_logloss.log`.
 
+### Stage 7 FIBR_PREDS diagnostics (2026-11-05)
+
+- Added `mi_stage7_fibr_diagnostics.py` and new outputs in
+  `stage7_fibr_diagnostics_outputs/`. It compares positive/negative groups and
+  missingness, calculates fold-level AP permutation importance and stability,
+  CatBoost TreeSHAP with a training-fold reference, fixed exploratory CatBoost
+  ablations, fold metrics, and leave-one-positive-out sensitivity on saved OOF
+  predictions.
+- The workflow uses the development partition only, reconstructs seed-42
+  stratified folds, checks saved fold signatures and OOF ID/label/fold
+  alignment, and does not export patient IDs. All five folds were completed
+  for three comparison models and three CatBoost diagnostic variants. Mean
+  Log Loss is reported descriptively; AP remains the primary model metric.
+- One initial run failed at the CatBoost TreeSHAP API because its validation
+  Pool required labels; the required fold labels were added as Pool metadata,
+  and the bounded rerun completed. A separate plot inspection found a label
+  axis issue, so the first image is preserved and a corrected plot is provided
+  and referenced in the report. Warnings and both corrections are recorded in
+  `logs/2026-11-05_stage7_fibr_diagnostics.log`.
+- Independent review passed implementation and generated artifact checks.
+  The findings are exploratory and do not select a new final model. T06
+  (development-only final model selection/calibration) remains active; no test
+  partition was accessed.
+
+### Stage 8 TabPFN experiment (2026-11-05)
+
+- Added `mi_stage8_tabpfn.py` and the eight requested files in
+  `stage8_tabpfn_outputs/`. TabPFN 3.5 ran sequentially on five seed-42
+  development folds for each target, using native numerical, categorical, and
+  missing-value inputs and a fixed 0.5 threshold. The user approved package/
+  checkpoint downloads and personally accepted the model license.
+- The run completed 15 folds and produced 4,080 OOF predictions. It used MPS;
+  total fit/predict runtime was 388.7 seconds, peak process RSS was 2,050 MiB,
+  and reported MPS allocation peaked at 3,041 MiB. No locked-test data were
+  accessed.
+- Mean AP was 0.750 for `DEATH_BINARY` (best saved comparator 0.733), 0.519
+  for `ZSN` (best saved comparator 0.502), and 0.295 for `FIBR_PREDS` (best
+  saved comparator 0.301). AP fold wins against the best-mean comparator were
+  4/5, 4/5, and 3/5, respectively. These five-fold results are descriptive,
+  not significance tests. Reported probability-quality tradeoffs are in the
+  Stage 8 report.
+- The independent code/output review passed, including OOF alignment, fold
+  metrics, paired comparisons, and plot review. Stage 8 recommends at most a
+  limited controlled comparison for `DEATH_BINARY` and `ZSN`; it does not
+  recommend a FIBR_PREDS-specific follow-up under the stated screen. No further
+  experiment is authorized by this result. T06 remains the active assignment
+  task.
+
+### Stage 9 provisional finalist calibration comparison (2026-11-05)
+
+- Added `mi_stage9_finalist_calibration.py` and new outputs in
+  `stage9_finalist_calibration_outputs/` for the user-specified provisional
+  pairs: TabPFN 3.5/CatBoost tuned for `DEATH_BINARY`, TabPFN 3.5/Random Forest
+  tuned for `ZSN`, and Extra Trees preliminary/Random Forest preliminary for
+  `FIBR_PREDS`.
+- The nested development-only run used five seed-42 outer folds and four inner
+  calibration folds. All 150 fits completed, producing 8,160 OOF rows and 30
+  candidate-fold metric rows. Raw and sigmoid-calibrated AP, AUROC, Brier, and
+  Log Loss are reported; ECE and calibration slope/intercept diagnostics are
+  supplemental. No held-out test artifacts were accessed and no previous
+  stage outputs were modified.
+- Independent review passed. The reviewer checked all 30 folds, all 8,160
+  OOF rows against development IDs/labels/folds, and recomputed the four
+  probability metrics for each raw/calibrated fold result. Ten TabPFN
+  CPU-slow warnings were captured; failed and interrupted attempts and the
+  successful run details are retained in
+  `logs/2026-11-05_stage9_finalist_calibration.log`.
+- Results are provisional. Saved tuned settings were selected on each full
+  outer-training partition, so the inner calibration OOF scores are not
+  independent of those setting-selection labels; this limitation is disclosed
+  in the report. The threshold remains a fixed 0.5 reference. Final model,
+  calibration, and threshold choices remain for T06; no test evaluation is
+  authorized by this stage.
+
 ## T05 implementation record (2026-11-03, Asia/Tehran)
 
 - Added `t05_requirement_leakage_audit.md`, a requirement-by-requirement map
@@ -90,10 +164,83 @@ Harness created. Existing implementation covers Stages 1–4; the final calibrat
 
 ## Next steps
 
-1. Freeze per-target final model and calibration choices on development data (T06).
+1. After authorized development-only execution, independently verify the
+   fixed-finalist cross-fit, Platt calibration, and thresholds, then record the
+   T06 freeze. Stage 9 is context only; its scores are not reused.
 2. Request the user's approval before opening the held-out partition; then perform the one-time final evaluation (T07) and produce the assignment CSV (T08).
 3. Complete the report and required outputs (T09), then request independent review under T10.
 
+### T06 implementation (2026-11-05; independent verification pending)
+
+- Added `mi_stage10_t06_freeze.py` with the fixed provisional finalists,
+  nested five-fold development-only cross-fitting, five calibrators and the
+  optional-method screen, Platt-frozen thresholds, full-development
+  cross-fitted Platt bundles, saved TabPFN categories, and the approval-gated
+  exact output set. Added focused injected-estimator tests and T06 verification
+  steps in `verification.md`; refined T06 acceptance in `TASKS.md`.
+- `.venv/bin/python -m unittest discover -s tests -p 'test_stage10*.py' -v`
+  passed all 22 tests after the review findings were fixed. The suite also
+  validates saved AP evidence, output names, and per-fold comparison encoding.
+  Pylance syntax check and diagnostics were clean; initial implementation/test
+  errors and their corrections, plus the visible category warning, are recorded
+  in `logs/2026-11-05_t06_implementation.log`.
+- An independent read-only code review passed after two findings were fixed:
+  the comparison CSV now preserves pooled/fold operating-point metrics, and
+  configurable zero-sensitivity thresholding includes an all-negative cutoff.
+  A successful approved model-fitting run and output verification remain
+  pending; T06 is not complete.
+- At the time of this earlier implementation record, no finalist model had
+  been fit and no approved run had been invoked. A later approved run failed
+  before completing its first outer validation prediction; see the correction
+  record below. T06 remains incomplete and awaits independent verification.
+
+### T06 memory lifecycle correction (2026-11-05)
+
+- The subsequent approved T06 run failed during its first `DEATH_BINARY` outer
+  validation prediction (272 validation rows) with
+  `TabPFNMPSOutOfMemoryError`: 4.45 GiB MPS allocation against a 3.73 GiB
+  limit. The run was not retried. Failure details and the documented
+  approval-gated invocation are recorded in
+  `logs/2026-11-05_t06_implementation.log`.
+- Updated fold lifecycles to release each estimator after prediction, collect
+  garbage, and clear the MPS cache where available. Full-development models
+  are serialized one at a time and released before the next target fit.
+  Complete output sets are built in a temporary project-root staging location
+  and only published after success, so model failure does not leave a partial
+  `stage10_t06_outputs/`.
+- Focused T06 tests passed (16 tests), including injected-estimator cleanup
+  and sequential bundle lifecycle checks. Pylance syntax validation passed for
+  the implementation; Python AST parsing passed for both changed Python files.
+  Follow-up rerun of the focused tests also passed all 16 tests; AST and
+  whitespace checks passed, with the category-handling `Pandas4Warning`
+  remaining. An independent read-only review passed the cleanup and staging
+  correction. After separate user approval, one offline development-only retry
+  completed with exit code 0 and created all 13 named outputs in
+  `stage10_t06_outputs/`; the OOF CSV has 4,080 rows for verification. The exact
+  command and run evidence are in `logs/2026-11-05_t06_implementation.log`.
+  The run did not access held-out data or invoke T07.
+- T06 is **not complete**. Independent verification of generated outputs,
+  OOF/label alignment, thresholds, comparisons, and manifest passed. Bundle
+  verification failed: ordinary `joblib.load` in a fresh process cannot resolve
+  `__main__.FinalModelBundle`. The full independent verdict and evidence are
+  recorded in `verification.md`. The class now lives in importable
+  `mi_stage10_t06_bundle.py`, with a fresh-process serialization regression
+  test; 17 focused tests pass and independent code review passed. The generated
+  bundles were replaced only after explicit approval, using the existing fitted
+  estimators/calibrators and stable importable class; fresh ordinary
+  `joblib.load` subprocesses passed for all three. No model fitting occurred.
+  The independent follow-up then passed ordinary fresh-process loading and
+  three-row prediction checks for all bundles, including target/configuration,
+  Platt parameters, threshold metadata, finite bounded probabilities, exact
+  13-file output membership, and absence of temporary files. T06 is complete;
+  detailed PASS/FAIL history and follow-up evidence are in `verification.md`.
+  No held-out access or T07 run occurred; T07 remains gated by separate user
+  approval.
+
 ## Session record
+
+- T06 complete: independent implementation, output, and repaired-bundle
+  verification passed. T07 is still blocked pending separate explicit approval
+  to open the locked test partition.
 
 - Harness creation: read-only inspection found a clean Git worktree and no prior harness files. No implementation code or existing output was changed. Independent verification of this harness has not yet been performed.

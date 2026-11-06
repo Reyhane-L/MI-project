@@ -1,0 +1,273 @@
+# T06 implementation and focused verification — 2026-11-05
+
+## Scope and safeguards
+
+- Added `mi_stage10_t06_freeze.py` and focused tests in
+  `tests/test_stage10_t06_freeze.py`.
+- Runtime inputs are explicit Stage 1 development-only files:
+  `X_train.csv`, `y_train.csv`, `train_record_ids.csv`, and
+  `column_dictionary.csv`. Stage 9 predictions are not read or used as outer
+  scores; there are no held-out input references or file globs in the script.
+- The output directory is created only inside the explicit
+  `--approve-development-only-run` execution path. It remains absent.
+- No finalist training, model-fitting experiment, T07 invocation, dependency
+  installation, artifact regeneration, or held-out inspection was performed.
+
+## Implementation
+
+- Added five-fold seed-42 stratified outer cross-fitting for the specified
+  TabPFN 3.5 (`DEATH_BINARY`, `ZSN`) and preliminary Random Forest
+  (`FIBR_PREDS`) finalists. Each outer training partition creates fresh
+  five-fold seed-42 inner OOF scores, fits the existing serializable
+  calibrators, then scores the untouched outer validation rows with a separate
+  base-model fit.
+- Raw, Platt, Isotonic, Beta, and Temperature report pooled and per-fold
+  Brier, Log Loss, AP, AUROC, and fixed-0.5 confusion metrics. The optional
+  calibrator screen requires at least 1% pooled improvement on both Brier and
+  Log Loss and at least four fold wins for each. Platt remains frozen.
+- Thresholds maximize specificity subject to sensitivity >=0.80 using pooled
+  outer cross-fitted Platt OOF, with the largest threshold used for ties.
+- Added fresh five-fold full-development OOF base scores for each final Platt
+  calibrator, full-development refits, serializable inference bundles, saved
+  TabPFN category schemas, manifest, reliability plots, and concise report.
+- `TASKS.md` and `verification.md` now contain T06 acceptance and independent
+  verification procedures. T06 remains unchecked and independent verification
+  is pending.
+
+## Checks and evidence
+
+- Initial focused test run found an incorrect expected Brier value in the new
+  test fixture (`0.1275`); hand calculation and runtime output showed
+  `0.1675`. The assertion was corrected, not the metric implementation.
+- `.venv/bin/python -m unittest discover -s tests -p 'test_stage10*.py' -v`
+  — PASS, 16 tests. This includes eight T06 tests for metrics, optional-method
+  qualification, threshold selection and tie-breaking, fold isolation, OOF ID
+  and row-order alignment, category handling, and joblib bundle prediction.
+  The tests use injected/tiny dummy estimators only.
+- Pylance `pylanceFileSyntaxErrors` on `mi_stage10_t06_freeze.py` — no syntax
+  errors. Pylance `textDocument/diagnostic` — no diagnostics.
+- `git diff --check -- mi_stage10_t06_freeze.py
+  tests/test_stage10_t06_freeze.py TASKS.md verification.md` — passed.
+- A `Pandas4Warning` appears in the category-schema unit test when a
+  validation-only category is mapped to missing. This is the intended Stage 8
+  behavior; the approved execution captures fit-time warnings in the manifest.
+- Confirmed `stage10_t06_outputs/` does not exist. No model result or freeze
+  decision is claimed.
+
+## Follow-up hardening and rerun
+
+- Added the requested output filenames, saved Stage 3/8 development AUPRC
+  evidence and per-target selection rationale, one-row-per-method calibration
+  summaries with five embedded fold records, fitted Platt coefficients and
+  configuration in the manifest/bundles, configurable minimum sensitivity,
+  explicit fit-warning CSV, and a report of Stage 9's setting-selection
+  limitation and the T06 correction.
+- A test run during this follow-up found an indentation error after helper
+  insertion; after correcting function placement, a subsequent run found a
+  missing unit-test import. Both failures are retained here and were corrected
+  before the passing rerun.
+- `.venv/bin/python -m unittest discover -s tests -p 'test_stage10*.py' -v`
+  — PASS, 21 tests. This includes the new saved-summary AP evidence check,
+  output schema/five-fold comparison coverage, and calibrated-probability
+  validation.
+- `.venv/bin/python -m py_compile mi_stage10_t06_freeze.py
+  tests/test_stage10_t06_freeze.py` — passed.
+- Pylance `pylanceFileSyntaxErrors` — no syntax errors;
+  `textDocument/diagnostic` — no diagnostics.
+- A `Pandas4Warning` remains visible in the category-handling unit test.
+  Finalist fitting, output generation, and held-out access remain pending;
+  independent review is pending.
+
+## Review finding corrections — 2026-11-05
+
+- Updated `summarize_method_comparison` to retain fixed-0.5 accuracy,
+  precision, recall, specificity, F1, TN, FP, FN, and TP in its pooled columns
+  and every serialized fold record. Extended the schema test to compare the
+  emitted values against `compare_methods` for all targets, methods, and folds.
+- Added the all-negative cutoff immediately above the maximum score to
+  `select_threshold`'s candidates. Added the zero-minimum-sensitivity
+  regression case (`y=[1, 0]`, `p=[0.2, 0.9]`) asserting a deterministic
+  above-maximum cutoff, specificity 1, and zero TP/FP.
+- Before the implementation fix, the focused suite reproduced both findings:
+  the pooled operating-point fields were missing, and threshold selection
+  returned `0.9` instead of `nextafter(0.9, +inf)`.
+- `PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -B -m unittest discover -s tests -p 'test_stage10_t06_freeze.py' -v`
+  — PASS, 14 tests. The existing category-handling `Pandas4Warning` remains.
+- `.venv/bin/python -B -c "import ast, pathlib; files = ['mi_stage10_t06_freeze.py', 'tests/test_stage10_t06_freeze.py']; [ast.parse(pathlib.Path(f).read_text(), filename=f) for f in files]; print('Syntax OK:', ', '.join(files))"`
+  — PASS for both changed Python files.
+- No model fitting, held-out access, T07 run, or stage output generation was
+  performed. T06 remains incomplete; independent verification is pending.
+
+## Independent implementation review — 2026-11-05
+
+- The independent read-only reviewer initially returned FAIL on two bounded
+  issues: comparison summaries omitted the already-computed confusion/
+  operating-point metrics, and the zero-sensitivity configuration could not
+  select an all-negative threshold. Both were fixed with regression tests.
+- The reviewer then returned PASS for implementation-level correctness and
+  leakage review. It confirmed the fixes and checked finalist AUPRC evidence
+  against the Stage 3/8 development aggregates. Its focused T06 suite passed
+  14 tests; the implementation session's combined Stage 10 suite passed 22.
+- Pylance syntax validation and diagnostics were clean. No output run,
+  finalist fit, test access, or T07 was performed. Artifact and runtime
+  verification remain pending, so T06 is not complete.
+
+## T06 memory lifecycle correction — 2026-11-05
+
+- Failed approved-run record: the documented approval-gated command is
+  `.venv/bin/python mi_stage10_t06_freeze.py
+  --approve-development-only-run`. The original terminal transcript and exact
+  environment prefix are not present in the retained run record, so this is the
+  documented invocation, not a claim that it reproduces every shell setting
+  from the failed attempt. The reported failure occurred during the first
+  `DEATH_BINARY` outer validation prediction, involving 272 validation rows,
+  with `TabPFNMPSOutOfMemoryError`: MPS allocated 4.45 GiB against a 3.73 GiB
+  limit. No retry was started.
+- Added `cleanup_model_resources`: after each inner-fold and outer-fold
+  fit/predict, the estimator reference is deleted, `gc.collect()` runs, and
+  `torch.mps.empty_cache()` is called when MPS is available. The final
+  full-development fit is likewise serialized and released before the next
+  target's fit. Final bundle objects are not retained in a target dictionary;
+  only OOF arrays/dataframes and calibration metadata remain in memory.
+- All T06 artifacts, including each staged bundle, now go to a temporary
+  staging directory under the project root. The completed directory is renamed
+  to `stage10_t06_outputs/` only after all model work and artifact checks
+  succeed; exceptions during model work remove staging and leave no partial
+  persistent output directory. Finalist settings, device, and threshold policy
+  were not changed.
+- Added injected-estimator unit coverage for MPS cache cleanup, per-fold
+  release calls, and sequential full-development bundle fit/serialization/
+  release. The first focused test run exposed two test-only issues: an
+  incorrect expected cleanup count (35 instead of 30) and a `Mock` call-history
+  reference that kept a serialized injected estimator alive. Both test defects
+  were corrected; no implementation change was needed for those failures.
+- Final focused command:
+  `PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -B -m unittest discover -s tests -p 'test_stage10_t06_freeze.py' -v`
+  — PASS, 16 tests. The previously documented category-handling
+  `Pandas4Warning` remains.
+- Pylance syntax check passed for `mi_stage10_t06_freeze.py`; Pylance
+  signature compatibility reports the single updated
+  `full_development_oof_and_model` call site compatible. Pylance diagnostics
+  for the implementation and test files returned no items. The Pylance test
+  syntax endpoint did not resolve the test URI on the final check; a
+  no-bytecode Python AST parse passed for both changed Python files.
+- The correction session did not invoke `_run_crossfit`, fit a project model,
+  access held-out artifacts, create T06 outputs, or retry the failed run.
+  `stage10_t06_outputs/` was confirmed absent. T06 remains incomplete;
+  independent verification of this correction and any later approved run
+  remain pending.
+- Follow-up validation after the lifecycle correction:
+  `PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -B -m unittest discover -s tests -p 'test_stage10_t06_freeze.py' -v`
+  — PASS, 16 tests; the category-handling `Pandas4Warning` remains.
+  A no-bytecode AST parse of both changed Python files and `git diff --check`
+  passed. The output directory remains absent. Independent read-only review
+  passed for estimator cleanup and staged publication. No model fitting or
+  held-out access occurred; generated-artifact verification remains pending.
+- The user approved one bounded T06 retry with minimum sensitivity 0.80. Before
+  execution, the existing TabPFN/Skrub/Matplotlib cache directories were
+  present, MPS was available, and `stage10_t06_outputs/` was absent. The
+  approved run uses the cached checkpoint with Hugging Face/Transformers
+  offline flags and performs no dependency installation or network access.
+  Planned workload: 108 fixed-configuration fits (72 TabPFN, 36 Random
+  Forest); no test partition, T07, or hyperparameter search.
+
+## Approved T06 development-only retry (completed 2026-11-06)
+
+- Exact command:
+  `env HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 SKB_DATA_DIRECTORY=/private/tmp/skrub-stage8 TABPFN_MODEL_CACHE_DIR=/private/tmp/tabpfn-stage8-cache MPLCONFIGDIR=/private/tmp/mi-stage8-mplconfig .venv/bin/python -u mi_stage10_t06_freeze.py --approve-development-only-run --minimum-sensitivity 0.80`
+- The command returned exit code 0. Explicit checks found all 13 files named in
+  `OUTPUT_FILES`; output row counts were 4,080 cross-fitted OOF predictions
+  (CSV has 4,081 lines including the header), 15 calibration-comparison rows
+  plus the header, and three target threshold rows plus the header.
+- The run used only the script's explicit Stage 1 development inputs and saved
+  Stage 3/8 development summaries. No held-out input, T07, external service,
+  dependency install, model search, or retuning was part of the command.
+- Independent verification of output contents, OOF alignment, thresholds,
+  comparisons, manifest, and loadable bundles is pending. T06 is not complete
+  until the separate verification record passes.
+
+### Independent generated-output verification (2026-11-06)
+
+- The independent verifier returned **FAIL** overall. It passed the exact
+  13-file output check, development-only source/configuration review, all
+  4,080 OOF ID/label/fold alignments, bounded finite probability checks,
+  recomputed pooled/fold comparison metrics, optional-method screens,
+  finalist/Platt/threshold checks, manifest/warnings, and reliability plots.
+  No held-out files were accessed and T07 was not run.
+- The sole finding: ordinary `joblib.load` in a fresh process failed for each
+  of the three bundles with
+  `AttributeError: module '__main__' has no attribute 'FinalModelBundle'`.
+  An in-memory `__main__` alias permitted two-row development-only scoring, but
+  this does not meet the loadable-bundle requirement.
+- Preserve the generated outputs. A stable importable class and focused
+  serialization regression test are being implemented; do not rerun model
+  fitting or regenerate outputs. T06 remains incomplete until independent
+  bundle re-verification passes.
+
+### Bundle serialization fix (2026-11-06)
+
+- Added `mi_stage10_t06_bundle.py` as the stable module for
+  `FinalModelBundle`; `mi_stage10_t06_freeze.py` re-exports the class to retain
+  the existing import path. Added a regression test that writes a script-style
+  instance and performs ordinary `joblib.load` in a fresh process without a
+  `__main__` alias.
+- The implementation session reran the focused T06 suite: 17 tests passed.
+  AST parsing and whitespace checks passed; the category-handling
+  `Pandas4Warning` remains. Independent read-only code review passed: direct
+  script execution uses the stable importable class path, the public import
+  remains compatible, and the regression test checks standard fresh-process
+  loading without a `__main__` alias.
+- Existing generated Stage 10 outputs, including all three bundles, have not
+  been modified or regenerated. No model fitting, held-out access, or T07 run
+  occurred. Once code review passes, obtain explicit user approval before
+  reserializing only the three named bundle files; then independently verify
+  ordinary loading and prediction. T06 remains incomplete.
+- The user has now explicitly approved replacing only
+  `death_binary_bundle.joblib`, `zsn_bundle.joblib`, and
+  `fibr_preds_bundle.joblib`. The approved operation is serialization-only:
+  load each existing fitted object with a temporary legacy class alias, write
+  it with the stable importable class, validate a standard fresh-process load,
+  and atomically replace that exact file. No other output or model state will
+  be changed.
+
+### Approved bundle-only reserialization (2026-11-06)
+
+- Used the existing estimator, Platt calibrator, category schema, and metadata
+  from each existing bundle. The conversion staged each file in the same output
+  directory, loaded the staged bundle in a fresh ordinary Python process with
+  no `__main__` alias, verified target and Platt metadata, then atomically
+  replaced only the three approved bundle paths.
+- All three fresh-process checks passed and resolved the class as
+  `mi_stage10_t06_bundle.FinalModelBundle`. No model was fit and no other
+  output was rewritten.
+
+### Independent final T06 verification (2026-11-06)
+
+- The independent follow-up passed standard fresh-process load and
+  `predict_probability` checks for all three repaired bundles without a
+  `__main__` alias. Target, model, Platt method/parameters, threshold, and
+  threshold status matched the manifest and selected-threshold table.
+- Each bundle produced three finite probabilities in `[0,1]` from the first
+  three rows of Stage 1 `X_train.csv`. The exact 13-file output membership was
+  intact, with no missing, extra, or temporary files.
+- Together with the initial independent verification (which passed OOF
+  alignment, metrics/comparisons, optional calibrator screens, thresholds,
+  manifest/warnings, and reliability plots), this satisfies the T06
+  acceptance criteria. The initial bundle FAIL and its repair are preserved
+  above; the independent final bundle verdict is PASS.
+- Final focused command:
+  `PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -B -m unittest discover -s tests -p 'test_stage10_t06_freeze.py' -v`
+  — PASS, 17 tests. AST syntax parsing and `git diff --check` passed.
+- No held-out data or T07 was accessed. T06 is complete; T07 still requires
+  separate explicit user approval.
+
+Retry command: env HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 SKB_DATA_DIRECTORY=/private/tmp/skrub-stage8 TABPFN_MODEL_CACHE_DIR=/private/tmp/tabpfn-stage8-cache MPLCONFIGDIR=/private/tmp/mi-stage8-mplconfig .venv/bin/python -u mi_stage10_t06_freeze.py --approve-development-only-run --minimum-sensitivity 0.80
+Approval: one bounded development-only retry; no test data, T07, downloads, or retuning.
+
+Approved serialization-only conversion: load the three existing bundles with a temporary legacy class alias, stage with mi_stage10_t06_bundle.FinalModelBundle, check ordinary fresh-process loads, then atomically replace only those three bundle paths.
+death_binary_bundle.joblib: DEATH_BINARY mi_stage10_t06_bundle FinalModelBundle
+zsn_bundle.joblib: ZSN mi_stage10_t06_bundle FinalModelBundle
+fibr_preds_bundle.joblib: FIBR_PREDS mi_stage10_t06_bundle FinalModelBundle
+Replaced approved bundle: stage10_t06_outputs/death_binary_bundle.joblib
+Replaced approved bundle: stage10_t06_outputs/zsn_bundle.joblib
+Replaced approved bundle: stage10_t06_outputs/fibr_preds_bundle.joblib

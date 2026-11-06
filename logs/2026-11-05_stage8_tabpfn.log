@@ -1,0 +1,33 @@
+# Stage 8 TabPFN experiment
+
+## Scope and boundary
+
+- User approved TabPFN installation and weight download and confirmed eligibility to accept the official professional-purpose, non-commercial TabPFN-3.5 license. User must personally complete the Prior Labs license acceptance; the implementation agent has not accepted terms or downloaded model weights.
+- Development-only inputs and seed-42 five-fold stratified CV are planned. No locked test artifacts were accessed, enumerated, read, or hashed.
+- Official docs/release review: latest stable `tabpfn` 9.2.0, default TabPFN-3.5. Project environment before install: Python 3.14.7, macOS 15.5 arm64, scikit-learn 1.9.1; TabPFN/Torch/MLX absent. Official v3.5 checkpoint is 876 MB and separately licensed.
+
+## Dependency resolution and installation
+
+- Dry run command: `.venv/bin/python -m pip install --dry-run --report /private/tmp/tabpfn-9-2-dry-run.json tabpfn==9.2.0`.
+- Initial sandbox attempt failed resolving PyPI DNS; approved escalated retry succeeded (no packages installed during dry run).
+- Resolver planned `tabpfn==9.2.0`, `torch==2.15.0`, `mlx==0.32.4`, and supporting packages. Existing NumPy 2.5.4, pandas 3.1.0, SciPy 1.18.1, scikit-learn 1.9.1, and Matplotlib 3.11.2 satisfied requirements and were not upgraded.
+- Install command: `.venv/bin/python -m pip install --report /private/tmp/tabpfn-9-2-install.json tabpfn==9.2.0` (escalated network permission); exit 0. Installed TabPFN 9.2.0, PyTorch 2.15.0, MLX 0.32.4 and declared dependencies. `pip check`: no broken requirements.
+- An initial import attempt failed because Skrub tried to create `~/skrub_data`, outside workspace permissions. Import succeeded with `SKB_DATA_DIRECTORY=/private/tmp/skrub-stage8` and `TABPFN_MODEL_CACHE_DIR=/private/tmp/tabpfn-stage8-cache`.
+- Pre-execution runtime check in the sandbox: Python 3.14.7 arm64; TabPFN 9.2.0; PyTorch 2.15.0; MLX 0.32.4. MPS was built but reported unavailable in that sandbox check. In the network-enabled execution context, the actual model run reported MPS available and `device='auto'` selected MPS; measured hardware/runtime fields from the successful run are authoritative for this run.
+- `.venv/bin/python -m pip check`: no broken requirements. Import initially failed because Skrub tried to write to `~/skrub_data`; setting `SKB_DATA_DIRECTORY` to a writable temporary directory fixed import. No checkpoint was loaded.
+- Implementation: `mi_stage8_tabpfn.py`; `.venv/bin/python -m py_compile mi_stage8_tabpfn.py` exited 0. Development-only preflight passed 105 comparator metric rows and checked fold signatures for 21 target/model sets (7 models × 3 targets × 5 folds). It did not import TabPFN, run a model, or access test artifacts.
+- Independent static review initially failed because the report lacked an explicit further-investigation recommendation. Added a data-dependent FIBR_PREDS screen (mean AP above best saved comparator and ≥4/5 paired AP wins) with Brier/Log Loss context and an explicit no-significance caveat. Reviewer rechecked and passed.
+- Before execution, the user personally completed official TabPFN-3.5 weight-license acceptance in Prior Labs. No credentials were handled by the implementation agent.
+
+## Model run
+
+- First run command used the temporary Skrub/cache/Matplotlib directories but sandbox DNS prevented the gated model-license endpoint lookup. It exited 1 at the first `fit()` before training; Stage 8 output directory was not created. Retained warning: pandas `Pandas4Warning` for deprecated `inplace=True` in comparator assembly. The sandbox failure was recorded; rerun was made with the user's download approval and escalated network permission.
+- User personally completed the Prior Labs login/license flow in the opened browser; TabPFN reported license accepted and cached the API key. No API key/token was requested from or entered by the agent.
+- Successful command: `env SKB_DATA_DIRECTORY=/private/tmp/skrub-stage8 TABPFN_MODEL_CACHE_DIR=/private/tmp/tabpfn-stage8-cache MPLCONFIGDIR=/private/tmp/mi-stage8-mplconfig .venv/bin/python mi_stage8_tabpfn.py` (escalated network); exit 0. Downloaded the official 876 MB TabPFN-3.5 checkpoint to temporary cache. Hugging Face emitted an unauthenticated-request warning (reduced rate limits only); download completed.
+- Completed all 15 target/fold model fits sequentially; 15 fold-level metric rows, 4,080 OOF predictions, 24 aggregate/comparison rows (8 models × 3 targets), and 105 paired TabPFN/comparator rows. All requested metrics are finite; no fit warnings in any of the 15 fold rows. OOF IDs/labels and reconstructed folds were checked by the script. No test data were accessed.
+- Observed backend: CUDA unavailable; MPS built and available; `device='auto'` selected MPS. Fit-plus-predict runtime across all folds: 388.7 s (mean 25.9 s; range 14.4–184.1 s). Process peak RSS: 2,050 MiB. MPS driver allocation after folds: up to 3,041 MiB. First fit timing may include license flow/checkpoint download.
+- Aggregate AP results: DEATH_BINARY TabPFN 0.750 ± 0.047 vs best comparator CatBoost 0.733 ± 0.059; ZSN 0.519 ± 0.097 vs Random Forest tuned 0.502 ± 0.083; FIBR_PREDS 0.295 ± 0.068 vs Extra Trees preliminary 0.301 ± 0.125. For FIBR_PREDS, TabPFN won 3/5 AP folds vs that best-mean comparator; its mean AUROC was higher (0.740 vs best comparator 0.726). Brier/Log Loss differences are in the report and fold comparison. Five folds are descriptive only.
+- A read-only output verifier checked 4,080 unique target/ID OOF rows against Stage 1 development IDs/labels; all 15 reconstructed fold assignments matched; 165 fold metric/confusion values recomputed from saved probabilities within `1e-12`; 24 comparison/aggregate groups and all 105 paired rows are present. No fit warnings appear in fold output.
+- The first output verifier invocation emitted a verifier-only Pandas4Warning when checking empty warning cells read as float NaN. The check was repeated with an explicit string dtype and passed; the model run itself remains unchanged. Syntax compilation after report/source polish passed.
+- The initial comparator assembly Pandas4Warning is corrected in the current script via non-inplace `drop`; the successful run's warning remains recorded.
+- Final independent code and artifact review: PASS. Reviewer validated outputs and report recommendations; the comparison plot was visually reviewed. A focused follow-up confirmed the per-target AP comparisons and that conclusions are descriptive, without significance claims. No implementation output was changed after the run; the warning-only source cleanup was syntax-checked but did not require model reruns.
