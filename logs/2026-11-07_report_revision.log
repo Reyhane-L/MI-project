@@ -1,0 +1,34 @@
+T09 report revision record (2026-11-07)
+
+Scope: revised the existing root `report.tex` only. No Python scripts, source
+data, frozen models, predictions, stage outputs, or experiment results were
+modified. The report uses existing stage summaries, aggregate metrics,
+calibration/decision-curve figures, and development SHAP plots. It omits all
+mandatory assignment-answer and literature-review content, as requested.
+
+Content sources inspected: Stage 1 design/script and dictionary; Stage 2–6
+model summaries and reports; Stage 7 fibrillation diagnostics; Stage 8 TabPFN
+comparison; Stage 9 finalist calibration; active Stage 10 T06 freeze; Stage 11
+aggregate evaluation report/metrics/decision curves; Stage 13 mortality SHAP
+summary; and the existing T09 report build record. No raw test rows, test-label
+values, or row-level T07 predictions were inspected.
+
+Build and checks:
+- `latexmk -xelatex -interaction=nonstopmode -halt-on-error -outdir=/tmp/mi_report_xe report.tex`
+- XeLaTeX completed and produced a seven-page PDF at
+  `/tmp/mi_report_xe/report.pdf`.
+- The final build log has no LaTeX errors, unresolved references, or
+  overfull/underfull box warnings.
+- Text extraction confirmed there are no student-answer placeholders or
+  question-response sections. All referenced local figure assets were
+  confirmed present.
+- The report was rendered and visually reviewed; figure/table placement and
+  page breaks were legible. Seven figures and three tables appear in the PDF.
+- Independent read-only report review: PASS. Targeted follow-up after final
+  text/font corrections: PASS. Reviewer did not inspect row-level test data.
+
+Interpretation notes: TabPFN, calibration alternatives, and FIBR_PREDS
+CatBoost SHAP are explicitly labeled as exploratory; the final T06 mapping
+and one-time T07 results are distinguished. The separate cost-sensitive
+threshold experiment and the assignment-answer discussion are intentionally
+omitted.

@@ -1,0 +1,14 @@
+# Install core requirements plus dependencies for later/additional stages.
+-r requirements.txt
+
+# CatBoost: Stages 6–7, active T06 freeze, and Stage 13 mortality SHAP.
+catboost==1.2.10
+
+# Directly used by later calibration/evaluation scripts and frozen bundles.
+scipy==1.18.1
+joblib==1.6.0
+
+# TabPFN is only needed for the optional Stage 8 and historical Stages 9–10
+# calibration experiments. Its first model fit may require licensed weights.
+tabpfn==9.2.0
+torch==2.15.0

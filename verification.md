@@ -629,3 +629,34 @@ accessed.
   model settings, preprocessing, fold digests, output schemas, and warnings
   are recorded in the run manifest. Aggregate differences are mixed across
   metrics and targets; no claim is made that leakage must increase scores.
+
+## Dependency and execution documentation review (2026-11-07)
+
+**Independent review verdict: PASS for the dependency files and root README.**
+This is a scoped documentation result; it does not complete T10 or substitute
+for the remaining assignment deliverables.
+
+- The reviewer checked `requirements.txt` and `requirements-optional.txt`
+  against core and later-stage imports and the recorded environment. TabPFN is
+  optional. The README states Python 3.14.7 as the existing tested environment
+  and explicitly says clean installation and cross-platform compatibility
+  have not been verified.
+- The README separates core, additional experiments, and frozen evaluation
+  and export instructions. It documents dependencies, commands, inputs,
+  outputs, runtime and overwrite cautions, and T07/T08 restrictions.
+- Review initially found an inaccurate statement about T07/T08 tests. The
+  README was corrected to say those modules call evaluation/export functions
+  with synthetic temporary fixtures and patched paths and do not access real
+  project test data. Independent follow-up review passed.
+- Safe implementation checks: installed versions match both requirement
+  files; `pip check` reports no broken requirements; syntax compilation
+  passed for 28 Python files; imports passed for 18 modules excluding T07/T08;
+  all 20 README script references and 16 output-directory references exist.
+- Six safe test modules passed (54 tests total): cost-sensitive threshold,
+  leakage, undersampling probability, Stage 10 calibration helpers, T06
+  synthetic freeze tests, and mortality SHAP helpers. T07/T08 test modules
+  were skipped under the explicit no-execution restriction.
+- No installation, Stage 1, T07, T08, model experiment, or locked test-file
+  access occurred. Existing experimental outputs were not modified. A fresh
+  environment installation remains untested. T10 remains open while other
+  deliverables are outstanding.

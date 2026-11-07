@@ -420,3 +420,21 @@ T06, T07, and T08 are complete. T08 exported 340 rows with exact header `ID,LET_
   uniformly favoring global imputation. See
   `logs/2026-11-07_mi_leakage_experiment.log` and the focused verdict in
   `verification.md`. The held-out partition was not accessed.
+
+### Dependency and execution documentation (2026-11-07)
+
+- Added root `requirements.txt` for core Stages 1–4 and
+  `requirements-optional.txt` for CatBoost, SciPy, joblib, TabPFN, and PyTorch
+  used by later stages. Pins match the existing Python 3.14.7 environment;
+  fresh installation and cross-platform compatibility remain unverified.
+- Added root `README.md` with stage order, required inputs and outputs,
+  installation instructions, test guidance, computational notes, output
+  overwrite warnings, and approval restrictions. Independent documentation
+  review passed after correcting the T07/T08 synthetic-test description.
+- Safe checks passed: dependency consistency, 28-file syntax compilation,
+  imports for 18 modules excluding T07/T08, 20 README script references and 16
+  output directory references, and 54 tests across six non-T07/T08 test
+  modules. No Stage 1, T07, T08, model experiment, dependency installation, or
+  locked test data access occurred. T10 remains open pending the other
+  deliverables and complete acceptance review. See
+  `logs/2026-11-07_dependency_readme.log` and `verification.md`.

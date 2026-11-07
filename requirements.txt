@@ -1,0 +1,6 @@
+# Core dependencies used directly by Stages 1–4.
+# Versions are pinned to the existing, project-tested Python 3.14.7 environment.
+numpy==2.5.4
+pandas==3.1.0
+scikit-learn==1.9.1
+matplotlib==3.11.2

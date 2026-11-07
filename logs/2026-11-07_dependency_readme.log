@@ -1,0 +1,40 @@
+Dependency and execution documentation record (2026-11-07)
+
+Scope: Phase 2–5 packaging work. Created root requirements.txt,
+requirements-optional.txt, and README.md. Added a scoped progress handoff and
+independent verification record. No scripts, data, experiments, stage outputs,
+or existing report-build files were changed.
+
+Dependency organization:
+- requirements.txt: numpy==2.5.4, pandas==3.1.0,
+  scikit-learn==1.9.1, matplotlib==3.11.2.
+- requirements-optional.txt includes core requirements and adds
+  catboost==1.2.10, scipy==1.18.1, joblib==1.6.0, tabpfn==9.2.0, and
+  torch==2.15.0.
+- Versions match the existing Python 3.14.7 .venv. No clean installation or
+  cross-platform compatibility claim is made.
+
+Checks performed:
+- Read-only independent review of README/dependency files: PASS after one
+  correction to describe T07/T08 tests as invoking evaluation/export functions
+  with synthetic temporary fixtures and patched paths.
+- .venv/bin/python -m pip check: PASS, no broken requirements found.
+- Compared all requirement pins with installed metadata: all pins matched.
+- Syntax-compiled 28 root/test Python files in memory with compile(): PASS.
+- Imported 18 non-T07/T08 modules using Python -B and temporary Matplotlib and
+  Skrub cache paths: PASS. T07/T08 modules were not imported or executed.
+- README path check: all 20 referenced script paths and 16 output-directory
+  paths exist.
+- Safe synthetic test modules, all PASS:
+  test_mi_cost_sensitive_threshold_experiment.py (5 tests)
+  test_mi_leakage_experiment.py (6 tests)
+  test_mi_undersampling_probability_experiment.py (9 tests)
+  test_stage10_calibration.py (8 tests)
+  test_stage10_t06_freeze.py (20 tests)
+  test_stage13_t09_mortality_shap.py (6 tests)
+  Total: 54 tests.
+
+Not run: Stage 1, Stage 11/T07, Stage 12/T08, all production ML experiments,
+T07/T08 test modules, dependency installation, and fresh-environment checks.
+No locked test rows or labels were accessed. Existing experimental outputs
+were not modified. Git status was reviewed; no commit or push was made.
