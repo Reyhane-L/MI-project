@@ -550,3 +550,29 @@ complete the full T09 report.
   model's raw output, not Platt-calibrated probability explanations. The
   beeswarm-style figure is monochrome and therefore does not assert feature
   value direction. No causal interpretation is supported.
+
+### Development-only imputation leakage experiment (2026-11-07)
+
+**Verdict: PASS.** This experiment uses only the Stage 1 development
+`X_train.csv` and `y_train.csv`; the held-out partition and test IDs were not
+accessed.
+
+- Independent read-only review confirmed the Stage 2 feature groups,
+  feature-specific imputation/encoding/scaling, logistic-regression
+  parameters, and target list are reused. The global-imputation method learns
+  medians/modes from development predictors before CV; the comparison method
+  fits the Stage 2 pipeline only on each fold's training rows.
+- Both methods use the same materialized per-target `StratifiedKFold`
+  (`n_splits=5`, `shuffle=True`, `random_state=42`) splits. Validation checks
+  cover schemas, missing and binary target labels, forbidden predictor
+  columns, binary predictor codes, fold class counts/sizes, matching split
+  digests, fit warnings, and output overwrite protection.
+- Six focused synthetic tests passed, including checks that global imputation
+  uses the development table and fold-local imputation excludes validation
+  predictors. Pylance reported no syntax errors. The production run completed
+  30 evaluations with no warnings; fold metrics and aggregate means/sample
+  standard deviations were independently checked against the CSV outputs.
+- Outputs are in `leakage_experiment_outputs/`; the input paths, versions,
+  model settings, preprocessing, fold digests, output schemas, and warnings
+  are recorded in the run manifest. Aggregate differences are mixed across
+  metrics and targets; no claim is made that leakage must increase scores.

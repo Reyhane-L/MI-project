@@ -1,0 +1,165 @@
+{
+  "command": "mi_leakage_experiment.py",
+  "cv": {
+    "n_splits": 5,
+    "random_state": 42,
+    "shuffle": true,
+    "strategy": "StratifiedKFold",
+    "target_specific_on_observed_labels": true
+  },
+  "experiment": "Stage 2 logistic-regression imputation-placement comparison",
+  "fold_warnings": [],
+  "global_imputation_warnings": [],
+  "inputs": [
+    "/Users/rayhaneh/Documents/MI project/stage1_outputs/X_train.csv",
+    "/Users/rayhaneh/Documents/MI project/stage1_outputs/y_train.csv"
+  ],
+  "methodology": {
+    "fold_local_method": "Use the Stage 2 preprocessing/model pipeline unchanged; imputers, scaler, one-hot category discovery, and logistic regression are fit only on each training fold.",
+    "global_method": "Fit Stage 2 median/mode imputers once on the complete development predictor table before using target-specific CV folds. Validation predictor values therefore contribute to global medians/modes.",
+    "interpretation": "This experiment demonstrates validation-predictor leakage from global imputation; leakage can shift metrics in either direction.",
+    "post_imputation_fits": "For both methods, scaling, one-hot category discovery, and logistic regression are fit within each training fold.",
+    "same_folds": true,
+    "split_index_digests_by_target": {
+      "DEATH_BINARY": [
+        [
+          "ae60c160845c92912d72b7b082b6a07b50612ff61bfbd65cc30730a7e45fa48d",
+          "551d77a14f5bb9f3268abc062c49814b272766ebc40d9035706e6ec18adc6984"
+        ],
+        [
+          "19f57b5ab7007990b84e2fd0038eda918906107dafc6d14d15e00122c63964ce",
+          "82fc66f89fdb0ec365f4166a2845384b8c018f3970a9d5f9346508de7c2dd446"
+        ],
+        [
+          "b0420f0f17b74a8d80e665e11062b0fef8afaaee8139d30eae4b022f3702de8c",
+          "10d2af60235d4e5cff0e62fb0668dc122d16c5e8105390cb60ed1fb4b2063ae5"
+        ],
+        [
+          "a17e9a4bcea0e4bd2deb6adc4f3662e4d217c73526b77b3f9c04b9cce695d771",
+          "b6dad21e3a16cc48df96ff2380dc2bda91be19324e829c482a7a33e7a6b6187e"
+        ],
+        [
+          "1c40b2f33783a3612c6756638ad2d66cbe33346d24ea1bbd0de05cda52b44fda",
+          "0fb73f1808b137ae11e1690edb2674c9574c8e57ec84889adca70be153359894"
+        ]
+      ],
+      "FIBR_PREDS": [
+        [
+          "4ddc7e2141641a52bcc5e290f7ed995cf3a6c56e148d56831a4ab3432884e228",
+          "6d6cc9f3ff71979f4e6b6a777e9e58ff27580ec6ad9f1e8e385de126332a1fb7"
+        ],
+        [
+          "a3cfc38c90166152eb41a29e6c43a8a8ea1a41f4b98419d0dca07754eea68124",
+          "ce9231729e8d55722b73bab96d5f2e479e7db2ef465db605c4de7edd58d789ef"
+        ],
+        [
+          "911dfe1bfdcd494f334996f494a6481018d2456ac7d5ce329db25c46752764fd",
+          "d96b17792437bc432f2856af0658ca06cd11dae7fe33afe39b158943bbbafda3"
+        ],
+        [
+          "bc9ae5d0f0ea70071c40f5c4852f74585fc1fe1725196118c148b52092f0251c",
+          "299d7fc50cb48ac4317754ebd9b34b388751b7818ed0d14772961f79ae61b57f"
+        ],
+        [
+          "185367f1af573c90b1a7bb45ac9b4973d883d6ad672565883508cc814a03285a",
+          "6b208bf5bbdd5c94668afac202acb15bad69c726eda52f2c7e3822908394926d"
+        ]
+      ],
+      "ZSN": [
+        [
+          "a89df941e19a541219f211f85fb56fd222c09dbe22fe1a11b97227c67209c8d7",
+          "946ae33fc32db75d3fd062715db0fdf86ec10bbfbe1b317891417b1a0d2fcaf2"
+        ],
+        [
+          "ee6eb5d7c0f8af865f0c7d5d9ad7a4033cf6eca707cad82582192644afdc42c2",
+          "e5abe7f409c15ef64318462799540a160b4a74920a4857a7c65e2a84b4bcc0c1"
+        ],
+        [
+          "f8aa9c974a8f28146a78b3de76651e6dee2860beb5f9d5cb848a51f4cfbffb90",
+          "fa98b3f0522afeef66c417edb79c612f20430662b1282786309745457d7ffb62"
+        ],
+        [
+          "238f28882c334f465f882e2c9cebfbb98b2efa440bc0b2db175d3817d44cfd81",
+          "ff8b7df59b80bdd88b20e29806ad73a44cbcb5bf1d691a7d81d895d0239c87d2"
+        ],
+        [
+          "838e768188f40a2ac5742f0ccf34f23ec780aabf2a31e96c8c20343dd7ea88e1",
+          "f73a5b82481d1b2ddf52f22d55e8094ab9c0c1950eaec26f5eda2bd8959026f2"
+        ]
+      ]
+    }
+  },
+  "metrics": [
+    "average_precision",
+    "auroc",
+    "brier_score"
+  ],
+  "model": {
+    "C": 1.0,
+    "class_weight": null,
+    "estimator": "LogisticRegression",
+    "l1_ratio": 0.0,
+    "max_iter": 2000,
+    "probabilities_preserve_natural_class_prevalence": true,
+    "random_state": 42,
+    "resampling": null,
+    "solver": "lbfgs"
+  },
+  "output_schemas": {
+    "aggregate_metrics.csv": [
+      "target",
+      "method",
+      "folds",
+      "average_precision_mean",
+      "average_precision_std",
+      "auroc_mean",
+      "auroc_std",
+      "brier_score_mean",
+      "brier_score_std"
+    ],
+    "fold_level_metrics.csv": [
+      "target",
+      "method",
+      "fold",
+      "n_train",
+      "n_validation",
+      "validation_positive_cases",
+      "validation_negative_cases",
+      "training_prevalence",
+      "average_precision",
+      "auroc",
+      "brier_score",
+      "train_index_sha256",
+      "validation_index_sha256",
+      "fit_warnings"
+    ],
+    "target_split_summary.csv": [
+      "target",
+      "development_rows",
+      "observed_label_rows",
+      "missing_label_rows",
+      "positive_cases",
+      "negative_cases",
+      "positive_prevalence"
+    ]
+  },
+  "preprocessing": {
+    "binary_features": "most_frequent imputation",
+    "continuous": "median imputation then StandardScaler",
+    "nominal_ecg_codes": "most_frequent imputation then OneHotEncoder(handle_unknown='ignore')",
+    "ordered_codes": "most_frequent imputation"
+  },
+  "stage2_source": "/Users/rayhaneh/Documents/MI project/mi_stage2_baselines.py",
+  "targets": [
+    "DEATH_BINARY",
+    "ZSN",
+    "FIBR_PREDS"
+  ],
+  "test_partition_accessed": false,
+  "versions": {
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "python": "3.14.7",
+    "scikit_learn": "1.9.1"
+  }
+}

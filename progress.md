@@ -403,3 +403,20 @@ T06, T07, and T08 are complete. T08 exported 340 rows with exact header `ID,LET_
   no held-out or T07/T08 inputs were accessed.
 - This completes only the mortality SHAP deliverable. The consolidated T09
   report and remaining guide questions/requirements are still outstanding.
+
+### Data-leakage imputation experiment (2026-11-07; independent review passed)
+
+- Added `mi_leakage_experiment.py` with Stage 2's actual feature-specific
+  imputation, scaling, one-hot encoding, logistic regression, target list, and
+  five-fold seed-42 setup. Global imputation uses development predictors
+  before CV; the safe arm fits the full preprocessing/model pipeline within
+  each training fold. Both methods use identical materialized splits.
+- The run used only Stage 1 `X_train.csv` and `y_train.csv` and completed all
+  30 evaluations with no warnings. Six focused synthetic tests passed;
+  Pylance syntax validation and independent read-only code/output review
+  passed. The review found no actionable issues.
+- Fold results, aggregates, target/split summary, and run metadata are in
+  `leakage_experiment_outputs/`. Observed differences were mixed rather than
+  uniformly favoring global imputation. See
+  `logs/2026-11-07_mi_leakage_experiment.log` and the focused verdict in
+  `verification.md`. The held-out partition was not accessed.

@@ -39,20 +39,3 @@ stated in the PDF, including the existing inability to prove exact row-level
 X/y/ID correspondence from the saved test CSV artifacts. Six assignment
 question answers and optional two-patient local SHAP explanations remain
 student work. Independent review is pending.
-
-Bibliography correction following independent review:
-- Re-read assignment-guide PDF page 30 (zero-based page index 29) with
-  `.venv/bin/python -c "from pypdf import PdfReader; ..."` to verify the
-  exact listed Guo author/title. Updated the Guo reference to the guide's
-  wording and cited it only in the mandatory causality-question prompt where
-  the guide itself names Guo et al.
-- Removed unused speculative article entries whose titles/metadata did not
-  match the guide. The two literature-review placeholders remain unselected.
-- Removed unsupported author/year from the assignment-guide bibliography item;
-  set a BibTeX sort key without asserting authorship or publication year.
-- Changed the UCI dataset entry to a neutral repository-record note.
-- Rebuilt with `latexmk -pdf -interaction=nonstopmode -halt-on-error
-  -outdir=t09_report t09_report/main.tex`; BibTeX and LaTeX completed without
-  warnings or unresolved citations/references. Rendered all eight PDF pages
-  again using Ghostscript and visually inspected revised question/reference
-  pages 7 and 8. PDF remains eight pages; six answer placeholders remain.

@@ -1,0 +1,73 @@
+# Imputation leakage experiment — 2026-11-07
+
+## Scope and input boundary
+
+- Added a standalone development-only comparison of Stage 2's logistic
+  regression with global versus fold-local median/mode imputation.
+- Read only `stage1_outputs/X_train.csv`, `stage1_outputs/y_train.csv`, and
+  `mi_stage2_baselines.py`. The experiment did not access the locked test
+  partition or any test-ID data.
+- The Stage 2 feature groups, target list, CV seed/fold count, and
+  `build_pipeline` function are loaded from the actual Stage 2 source through
+  its AST, avoiding the plotting module's temporary cache setup.
+- No source data or existing Stage 2–Stage 13 outputs were modified.
+
+## Implementation and outputs
+
+- Added `mi_leakage_experiment.py`; it rejects missing/invalid schemas, IDs or
+  outcomes in predictors, non-binary labels/features, insufficient stratified
+  class counts, malformed folds, failed fits, and invalid probabilities.
+- Both methods use the same materialized per-target `StratifiedKFold` splits
+  (`n_splits=5`, shuffle, seed 42) and the unchanged Stage 2 logistic
+  regression settings. The leakage method fits imputers on the complete
+  development predictor table; the safe method fits the Stage 2 pipeline
+  within each training fold. Scaling, one-hot category discovery, and logistic
+  regression remain fold-local in both methods.
+- Imputation leakage lets validation predictors influence global medians and
+  modes; this can shift metrics in either direction.
+- The output directory contains exactly:
+  `aggregate_metrics.csv`, `fold_level_metrics.csv`,
+  `target_split_summary.csv`, and `run_manifest.json`.
+- The manifest records input paths, versions, CV/model/preprocessing settings,
+  commands, output schemas, split-index digests, and captured warnings. The
+  script refuses to overwrite an existing output directory.
+
+## Commands and results
+
+- `.venv/bin/python -B -m unittest discover -s tests -p 'test_mi_leakage_experiment.py' -v`
+  — **6 tests passed**. Synthetic checks cover global imputer statistics on
+  the full development predictor table (including a row with missing labels),
+  training-fold-only safe imputer statistics, matching method split digests,
+  metric/output schemas, invalid schemas/labels/features, and overwrite
+  refusal.
+- `.venv/bin/python -B mi_leakage_experiment.py` — completed all 30 fold
+  evaluations (3 targets × 5 folds × 2 methods); **0 warnings** were captured.
+- The aggregate rows (mean ± sample SD across folds) were:
+
+  | Target | Imputation method | AP | AUROC | Brier |
+  |---|---|---:|---:|---:|
+  | DEATH_BINARY | Fold-local pipeline | 0.6507 ± 0.0306 | 0.8790 ± 0.0168 | 0.0890 ± 0.0050 |
+  | DEATH_BINARY | Global before CV | 0.6420 ± 0.0237 | 0.8793 ± 0.0150 | 0.0889 ± 0.0034 |
+  | ZSN | Fold-local pipeline | 0.3150 ± 0.0300 | 0.6212 ± 0.0252 | 0.1786 ± 0.0049 |
+  | ZSN | Global before CV | 0.3156 ± 0.0301 | 0.6210 ± 0.0257 | 0.1785 ± 0.0050 |
+  | FIBR_PREDS | Fold-local pipeline | 0.2460 ± 0.0685 | 0.7017 ± 0.0708 | 0.0888 ± 0.0077 |
+  | FIBR_PREDS | Global before CV | 0.2457 ± 0.0691 | 0.7010 ± 0.0714 | 0.0890 ± 0.0078 |
+
+- A read-only artifact check verified exact output membership, 30 fold rows,
+  six aggregate rows, three target summaries, recomputed all aggregate means
+  and sample SDs, matched method split digests, and confirmed no captured
+  warnings and no test-partition access.
+- Pylance syntax validation passed for `mi_leakage_experiment.py`; the focused
+  tests also executed the test module successfully.
+- Post-implementation verification: independent read-only code/output review
+  returned **PASS** with no actionable findings. Re-ran the focused unittest
+  command after review (6 tests passed); Pylance syntax validation again found
+  no errors.
+- `git diff --check` reported existing conflict markers in
+  `t09_report/references.bib` (lines 2, 15, 27, 37, 39, 40, 48, 55, and 91).
+  That file was already modified in the worktree before this task and was not
+  changed here. The two added Python files passed a trailing-whitespace check.
+
+`TASKS.md`, `progress.md`, and `verification.md` record the scoped experiment
+and its review result. The unrelated pre-existing T09 report changes remain
+untouched.
