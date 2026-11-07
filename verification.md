@@ -27,6 +27,32 @@ This completes only the Question 2 experiment; it does not complete T09 or
 authorize any further held-out data access. The prior-correction-only output
 set is preserved; the T09 answer uses the newer three-method experiment.
 
+## T09 Question 3 — Cost-sensitive threshold (2026-11-07)
+
+**Independent read-only verdict: PASS after targeted correction.** The initial
+review found that 12-digit CSV formatting collapsed the maximum score and the
+all-negative `nextafter` sentinel. The original output directory was preserved;
+the corrected output was written to `mi_cost_sensitive_threshold_outputs_v2/`.
+
+- Confirmed the experiment reuses T06's selected CatBoost-tuned, Platt-calibrated
+  `DEATH_BINARY` outer OOF probabilities and saved development threshold
+  (0.1533359551). No model/calibrator was fit and no test or Stage 11 data was
+  opened. Both input hashes are in the manifest.
+- Recomputed all three comparison points on the same 1,360 OOF records.
+  Minimum cost `10*FN+FP` was 505 at threshold 0.101369151773
+  (TP=197, FP=305, TN=838, FN=20); threshold 0.5 cost 1,079 and frozen
+  threshold cost 636.
+- Confirmed round-trip threshold precision preserves all 1,362 candidate
+  thresholds in the saved curve, including the all-negative sentinel (TN=1,143,
+  FP=0, FN=217, TP=0, cost=2,170). Five focused tests passed, including a
+  serialization regression test. The exact eight-file v2 output set is present.
+- The report distinguishes 36.91 alerts per 100 patients from 14.49 deaths
+  identified per 100 patients. The selected empirical threshold is descriptive
+  and does not modify the frozen model or threshold.
+
+This completes only the Question 3 development experiment; it does not
+complete T09 or authorize further held-out access.
+
 The verifier works read-only in a fresh session and reports PASS/FAIL with
 commands and evidence. Follow `AGENTS.md` and the applicable task acceptance
 criteria in `TASKS.md`. Do not edit implementation code, outputs, or task status.

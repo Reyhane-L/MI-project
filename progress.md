@@ -2,7 +2,7 @@
 
 ## Current stage
 
-T06, T07, and T08 are complete. T08 exported 340 rows with exact header `ID,LET_IS,ZSN,FIBR_PREDS`, reusing validated T07 calibrated probabilities from `non_tabpfn_v1`. Synthetic tests and independent code/output review passed; no test labels were accessed. T09 Question 2 now has a development-only three-way comparison of raw undersampled, prior-corrected, and Platt-calibrated death probabilities; an independent read-only review passed. The prior-correction-only outputs remain preserved, and the answer references the newer actual-calibration experiment. Current active work remains the other T09 final-report deliverables. Exact test-row X/y/ID alignment remains a documented limitation because the saved CSVs lack a shared row key.
+T06, T07, and T08 are complete. T08 exported 340 rows with exact header `ID,LET_IS,ZSN,FIBR_PREDS`, reusing validated T07 calibrated probabilities from `non_tabpfn_v1`. Synthetic tests and independent code/output review passed; no test labels were accessed. T09 Questions 2 and 3 now have development-only experiments and independent read-only PASS reviews. Q2 compares raw undersampled, prior-corrected, and Platt-calibrated probabilities; Q3 selects an empirical cost threshold from T06 outer OOF probabilities without changing the frozen threshold. Current active work remains the other T09 final-report deliverables. Exact test-row X/y/ID alignment remains a documented limitation because the saved CSVs lack a shared row key.
 
 ## Completed
 

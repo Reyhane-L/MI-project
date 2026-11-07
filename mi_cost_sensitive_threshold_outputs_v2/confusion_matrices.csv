@@ -1,0 +1,4 @@
+rule,threshold,true_negatives,false_positives,false_negatives,true_positives,cost_fn10_fp1
+cost_minimizing_development_oof,0.101369151773,838,305,20,197,505
+default_0.5,0.5,1114,29,105,112,1079
+frozen_sensitivity_0.8,0.153335955137,937,206,43,174,636

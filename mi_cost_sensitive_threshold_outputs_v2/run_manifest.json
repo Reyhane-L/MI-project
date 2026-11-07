@@ -1,0 +1,53 @@
+{
+  "experiment": "Development-only cost-sensitive mortality threshold analysis",
+  "target": "DEATH_BINARY",
+  "model": "CatBoost tuned",
+  "probability_column": "platt_probability",
+  "inputs": {
+    "development_oof_predictions": "stage10_t06_non_tabpfn_outputs/cross_fitted_oof_predictions.csv",
+    "frozen_development_thresholds": "stage10_t06_non_tabpfn_outputs/selected_thresholds.csv",
+    "sha256": {
+      "stage10_t06_non_tabpfn_outputs/cross_fitted_oof_predictions.csv": "d670d39e1dbb97603bd70f9aa54de94e3c79c8171d6b0b495d76e160557a14a3",
+      "stage10_t06_non_tabpfn_outputs/selected_thresholds.csv": "dbe18fbce4cee2f48b1b01cb23f99e8cbb7b06636247ff833cb88ebd10eb76e0"
+    }
+  },
+  "test_partition_accessed": false,
+  "model_fitted": false,
+  "calibration_fitted": false,
+  "cost": {
+    "false_negative": 10,
+    "false_positive": 1,
+    "formula": "10*FN+FP"
+  },
+  "decision_rule": "predict death when calibrated probability >= threshold",
+  "candidate_thresholds": "0, all unique development OOF probabilities, nextafter(max probability, +infinity)",
+  "tie_break": "choose highest threshold among thresholds with minimum empirical cost",
+  "references": {
+    "default": 0.5,
+    "frozen_development": 0.15333595513662462
+  },
+  "cv_provenance": "Existing T06 five-fold seed-42 outer development OOF predictions; no fold recreated.",
+  "n_oof_rows": 1360,
+  "n_unique_ids": 1360,
+  "n_deaths": 217,
+  "observed_prevalence": 0.15955882352941175,
+  "n_threshold_candidates": 1362,
+  "selected_threshold": 0.10136915177265607,
+  "command": "PYTHONDONTWRITEBYTECODE=1 MPLCONFIGDIR=/private/tmp .venv/bin/python -B mi_cost_sensitive_threshold_experiment.py",
+  "versions": {
+    "python": "3.14.7",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "matplotlib": "3.11.2"
+  },
+  "output_files": [
+    "threshold_cost_curve.csv",
+    "threshold_comparison.csv",
+    "prediction_level.csv",
+    "confusion_matrices.csv",
+    "cost_curve.png",
+    "sensitivity_specificity.png",
+    "experiment_report.md",
+    "run_manifest.json"
+  ]
+}

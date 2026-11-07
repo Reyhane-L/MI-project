@@ -1,0 +1,80 @@
+# Cost-sensitive mortality threshold experiment — 2026-11-07
+
+## Scope and data boundary
+
+- Added a post-processing experiment on T06's frozen development-only
+  `DEATH_BINARY` outer OOF Platt probabilities from `CatBoost tuned`. The
+  existing frozen model, calibrator, threshold outputs, T06/T07 artifacts,
+  and earlier undersampling experiment were not changed.
+- Read only
+  `stage10_t06_non_tabpfn_outputs/cross_fitted_oof_predictions.csv` and
+  `stage10_t06_non_tabpfn_outputs/selected_thresholds.csv`. Stage 11 outputs,
+  test predictions, test labels, and test IDs were not read.
+- Verified 1,360 unique mortality OOF IDs, five outer fold labels, binary
+  labels with both classes, finite bounded Platt probabilities, and one saved
+  frozen mortality threshold (0.15333595513662462).
+
+## Method and outputs
+
+- Decision rule: predict death when the Platt probability is greater than or
+  equal to threshold. Empirical cost is `10*FN + FP`.
+- Evaluated the candidate set `{0, every unique OOF probability,
+  nextafter(max probability, +infinity)}`. Among equal-cost thresholds, the
+  highest is selected. The script does not refit a model or calibrator.
+- The new output directory is `mi_cost_sensitive_threshold_outputs/` and
+  contains threshold cost curve, three-rule comparison, prediction-level
+  classifications, confusion-matrix counts, cost and sensitivity/specificity
+  plots, report, and run manifest. It refuses to overwrite an existing
+  directory. The manifest records input SHA-256 hashes, command, package
+  versions, candidate construction, and test-partition non-access.
+
+## Commands and results
+
+- `.venv/bin/python -B -m unittest discover -s tests -p 'test_mi_cost_sensitive_threshold_experiment.py' -v`
+  — **4 tests passed**. Synthetic coverage includes cost/confusion metrics,
+  tie-breaking at the highest threshold, selected-input validation/ID
+  uniqueness, and overwrite refusal.
+- `PYTHONDONTWRITEBYTECODE=1 MPLCONFIGDIR=/private/tmp .venv/bin/python -B mi_cost_sensitive_threshold_experiment.py`
+  — evaluated 1,362 candidates from the 1,360 development OOF scores.
+- OOF mortality prevalence was **0.15956** (217/1,360). Minimum-cost
+  threshold: **0.10137**, with TP=197, FP=305, TN=838, FN=20 and cost **505**.
+  This identifies **14.485 deaths per 100 evaluated patients**, has 502
+  alerts (36.91%), sensitivity **0.90783**, specificity **0.73316**, and
+  precision **0.39243**.
+- Default threshold 0.5: cost **1,079**, TP=112, FP=29, TN=1,114, FN=105;
+  141 alerts (10.37%), 8.235 deaths identified per 100, sensitivity 0.51613.
+- Frozen T06 threshold 0.1533359551: cost **636**, TP=174, FP=206, TN=937,
+  FN=43; 380 alerts (27.94%), 12.794 deaths identified per 100, sensitivity
+  0.80184.
+- The empirically cost-minimizing threshold has lower observed cost on these
+  same development OOF records and is descriptive only; it does not change
+  the frozen threshold or constitute final test evaluation.
+
+Independent review first failed because 12-significant-digit serialization
+collapsed the maximum probability and the all-negative nextafter sentinel in
+the saved curve. That output set was preserved unchanged. A new v2 directory
+uses 17-significant-digit serialization; the regression test passed and the
+reloaded curve contains 1,362 unique thresholds, including the all-negative
+row. Independent read-only follow-up review: **PASS**. It recomputed the
+selected metrics, confirmed all eight outputs, and did not access held-out
+inputs or Stage 11 artifacts.
+
+## Independent review correction
+
+- Independent review found that the initial cost-curve CSV used 12 significant
+  digits, serializing `max(p)` and `nextafter(max(p), +infinity)` to the same
+  threshold despite their different classifications. The original output
+  directory is preserved unchanged for review.
+- Changed threshold-curve serialization to 17 significant digits and routed
+  the corrected run to `mi_cost_sensitive_threshold_outputs_v2/`; no existing
+  analysis outputs were overwritten. The final v2 curve has **1,362 unique
+  thresholds**, matching the candidate count. Reloading it preserves the
+  sentinel as 0.9969517392653471, with TN=1,143, FP=0, FN=217, TP=0 (the
+  all-negative prediction).
+- Updated the regression suite to serialize and reload a synthetic curve,
+  verify the sentinel remains distinct from the maximum score, and confirm its
+  all-negative confusion counts. All **5 focused tests passed**.
+- The v2 report explicitly states N=1,360 and distinguishes **36.91 alerts
+  per 100 patients** from **14.49 deaths identified per 100 patients** at the
+  selected threshold. The optimal threshold and comparison counts are
+  unchanged: t=0.101369, cost=505, TP=197, FP=305, TN=838, FN=20.

@@ -1,0 +1,4 @@
+rule,threshold_source,threshold,n,observed_prevalence,true_positives,false_positives,true_negatives,false_negatives,cost_fn10_fp1,sensitivity,specificity,precision,alerts,alert_rate,true_deaths_identified_per_100,missed_deaths
+cost_minimizing_development_oof,empirical minimum 10*FN+FP over development OOF threshold candidates; highest threshold breaks ties,0.101369151773,1360,0.159558823529,197,305,838,20,505,0.907834101382,0.733158355206,0.392430278884,502,0.369117647059,14.4852941176,20
+default_0.5,fixed reference threshold,0.5,1360,0.159558823529,112,29,1114,105,1079,0.516129032258,0.974628171479,0.794326241135,141,0.103676470588,8.23529411765,105
+frozen_sensitivity_0.8,fixed reference threshold,0.153335955137,1360,0.159558823529,174,206,937,43,636,0.801843317972,0.819772528434,0.457894736842,380,0.279411764706,12.7941176471,43
