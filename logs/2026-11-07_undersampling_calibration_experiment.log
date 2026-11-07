@@ -1,0 +1,72 @@
+# Mortality undersampling and calibration experiment — 2026-11-07
+
+## Scope and data boundary
+
+- Extended the development-only mortality experiment to compare raw scores,
+  the Section 11.3 prior-probability correction, and actual Section 11.3 Platt
+  calibration. The earlier `undersampling_probability_outputs/` set and its
+  run log remain unchanged; this version writes to
+  `undersampling_calibration_outputs/`.
+- Read only `stage1_outputs/X_train.csv` and `stage1_outputs/y_train.csv`.
+  The locked test predictors, test labels, and test IDs were not accessed.
+- Five outer folds use `StratifiedKFold(shuffle=True, random_state=42)`. In
+  each outer training fold, `StratifiedShuffleSplit` (20%, seed 42 + fold)
+  reserves a calibration subset at natural prevalence. The Stage 2 logistic
+  preprocessing/model pipeline is fit only on the other model-fit subset
+  after deterministic 1:1 undersampling (seed 42 + fold). Platt is fit only
+  to base predictions on the disjoint calibration rows and their labels.
+  Outer validation rows remain untouched for scoring.
+
+## Reproducibility and audit artifacts
+
+- Model: Stage 2 regularized logistic regression (`l1_ratio=0`, `C=1`,
+  `lbfgs`, `max_iter=2000`, `class_weight=None`, `random_state=42`) with its
+  feature-specific imputation, scaling, and ECG one-hot encoding. All
+  preprocessing is fitted inside the sampled model-fit pipeline.
+- Prior correction uses `p = beta * ps / (beta * ps - ps + 1)`, with `beta`
+  equal to the odds of the original outer-training prevalence divided by the
+  odds of sampled prevalence (0.5). Only outer-training labels determine the
+  correction factor.
+- `fold_audit.csv` records outer/model-fit/sampled/calibration/validation
+  row-position lists and SHA-256 digests, class counts/prevalences, and
+  explicit pairwise disjointness flags. `oof_predictions.csv` records each
+  development row position, true label, outer fold, and all three scores.
+- Eight outputs are declared in `run_manifest.json`: OOF predictions, fold
+  metrics, fold audit, summary metrics, reliability bins, reliability plot,
+  experiment report, and manifest. The output script refuses to overwrite an
+  existing output directory.
+- The manifest records the exact command, CV and calibration split settings,
+  classifier and calibrator parameters, package versions, inputs, and all
+  captured warnings. Nine `UserWarning` entries are retained: folds 1, 2,
+  and 4 each reported that `KFK_BLOOD` had no observed values when the
+  fold-local median imputer was fitted on that sampled training data. No fold
+  failed or was dropped.
+
+## Commands and results
+
+- `.venv/bin/python -B -m unittest discover -s tests -p 'test_mi_undersampling_probability_experiment.py' -v`
+  — **9 tests passed**. Tests cover prior correction, deterministic 1:1
+  sampling, stratified calibration splitting, disjoint/exhaustive fold
+  partitions, natural calibration prevalence, validation row coverage,
+  metrics, and overwrite refusal. A test initially required exact 0.20
+  calibration prevalence despite stratified integer rounding; the check now
+  allows the expected rounding tolerance, and the full suite passes.
+- `PYTHONDONTWRITEBYTECODE=1 MPLCONFIGDIR=/private/tmp .venv/bin/python -B mi_undersampling_probability_experiment.py`
+  — completed five outer folds (1,360 OOF rows; 15 fold-method metric rows).
+- Pooled observed mortality prevalence: **0.15956**. Mean predicted death
+  probability: **0.34112 raw**, **0.17676 prior-corrected**, and **0.16628
+  Platt-calibrated**.
+- Pooled scores (`raw`, `prior correction`, `Platt`): Brier
+  **0.15202 / 0.09637 / 0.09376**; log loss **0.48017 / 0.32459 / 0.31032**;
+  quantile ECE **0.18309 / 0.04356 / 0.01229**; AP **0.59947 / 0.59949 /
+  0.60337**; AUROC **0.85898 / 0.85895 / 0.85344**. Platt had a calibration
+  slope of **1.01156** and intercept **-0.05628** on pooled OOF results.
+- Prior correction reduced the sampled-prior shift; Platt performed best on
+  these development probability metrics. These are descriptive CV results,
+  not a final-model selection or a held-out evaluation.
+
+Independent read-only code/output review: **PASS**. The reviewer confirmed
+that model-fit, natural-prevalence calibration, and outer-validation
+partitions are disjoint; verified the Platt fitting path and development-only
+inputs; checked all 1,360 OOF records and the exact eight-file output set; and
+recomputed the pooled comparisons. The locked test partition was not accessed.

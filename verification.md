@@ -2,26 +2,30 @@
 
 ## T09 Question 2 — 1:1 undersampling probability correction (2026-11-07)
 
-**Independent read-only verdict: PASS.** The reviewer checked the source,
-focused tests, exact output set, and saved evidence without opening the locked
+**Independent read-only verdict: PASS.** The reviewer checked the revised
+source, tests, exact output set, and saved evidence without opening the locked
 test partition.
 
-- Confirmed five-fold stratified seed-42 CV on Stage 1 development inputs only;
-  each model and preprocessing pipeline was fit on the training fold after
-  deterministic 1:1 undersampling. Validation folds retained natural prevalence.
-- Confirmed Section 11.3's prior correction uses each natural training-fold
-  prevalence and sampled prevalence (0.5), with no validation-label input.
-- Recomputed fold-specific corrected probabilities and pooled metrics; checked
-  one finite bounded OOF prediction per each of 1,360 eligible development
-  rows, unique row positions, exact seven-output membership, and warnings.
-- Seven focused synthetic tests passed. Two fold-5 median-imputation warnings
-  for `KFK_BLOOD` were preserved in the manifest and run log.
-- Pooled observed prevalence was 0.15956; mean probability changed from
-  0.35411 raw to 0.18409 corrected. Brier changed 0.15207 to 0.09428, log
-  loss 0.48401 to 0.31212, and quantile ECE 0.19455 to 0.03886.
+- Confirmed five-fold stratified seed-42 CV on Stage 1 development inputs only.
+  The Stage 2 model/preprocessing fit only on a disjoint, undersampled
+  model-fit subset. A disjoint 20% stratified calibration subset retained its
+  natural class distribution; the existing `PlattCalibrator` was fit only to
+  base scores and labels from that subset. Outer validation labels were not
+  used for model, preprocessing, prior-correction, or Platt fitting.
+- Confirmed raw, prior-corrected, and Platt scores cover the same 1,360 OOF
+  rows. Independently checked disjointness audit flags, five folds with three
+  method rows each, finite bounded probabilities, and exact eight-output
+  membership. Recomputed pooled probability metrics.
+- Nine focused synthetic tests passed. Nine fold-local `KFK_BLOOD` median
+  imputation warnings (folds 1, 2, and 4) remain in the manifest and log.
+- Pooled observed prevalence was 0.15956; mean probabilities were 0.34112
+  raw, 0.17676 prior-corrected, and 0.16628 Platt. Brier scores were 0.15202,
+  0.09637, and 0.09376; log loss 0.48017, 0.32459, and 0.31032; quantile ECE
+  0.18309, 0.04356, and 0.01229, respectively.
 
 This completes only the Question 2 experiment; it does not complete T09 or
-authorize any further held-out data access.
+authorize any further held-out data access. The prior-correction-only output
+set is preserved; the T09 answer uses the newer three-method experiment.
 
 The verifier works read-only in a fresh session and reports PASS/FAIL with
 commands and evidence. Follow `AGENTS.md` and the applicable task acceptance
