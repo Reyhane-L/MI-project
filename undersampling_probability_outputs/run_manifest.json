@@ -1,0 +1,60 @@
+{
+  "experiment": "Development-only 1:1 mortality undersampling probability correction",
+  "inputs": [
+    "stage1_outputs/X_train.csv",
+    "stage1_outputs/y_train.csv"
+  ],
+  "test_partition_accessed": false,
+  "target": "DEATH_BINARY",
+  "estimator": "Stage 2 regularized LogisticRegression (C=1.0, lbfgs, max_iter=2000)",
+  "preprocessing": "Stage 2 fold-local imputation, scaling, and one-hot pipeline",
+  "resampling": "Uniform random undersampling to 1:1 within each training fold only; seed=42+fold",
+  "correction": {
+    "section": "AI-HW2-Guide.pdf Section 11.3, prior-probability correction",
+    "formula": "p = beta * ps / (beta * ps - ps + 1)",
+    "beta": "odds(natural training-fold prevalence) / odds(1:1 sampled training prevalence)",
+    "prevalence_source": "training fold only; validation labels are not used in correction"
+  },
+  "cv": {
+    "strategy": "StratifiedKFold",
+    "folds": 5,
+    "shuffle": true,
+    "seed": 42
+  },
+  "versions": {
+    "python": "3.14.7",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "scikit_learn": "1.9.1"
+  },
+  "warnings": [
+    {
+      "fold": 5,
+      "category": "UserWarning",
+      "message": "Skipping features without any observed values: ['KFK_BLOOD']. At least one non-missing value is needed for imputation with strategy='median'."
+    },
+    {
+      "fold": 5,
+      "category": "UserWarning",
+      "message": "Skipping features without any observed values: ['KFK_BLOOD']. At least one non-missing value is needed for imputation with strategy='median'."
+    }
+  ],
+  "output_files": [
+    "oof_predictions.csv",
+    "fold_metrics.csv",
+    "summary_metrics.csv",
+    "reliability_bins.csv",
+    "reliability_comparison.png",
+    "experiment_report.md",
+    "run_manifest.json"
+  ],
+  "command": "PYTHONDONTWRITEBYTECODE=1 MPLCONFIGDIR=/private/tmp .venv/bin/python -B mi_undersampling_probability_experiment.py",
+  "logistic_regression": {
+    "l1_ratio": 0.0,
+    "C": 1.0,
+    "solver": "lbfgs",
+    "max_iter": 2000,
+    "class_weight": null,
+    "random_state": 42
+  }
+}

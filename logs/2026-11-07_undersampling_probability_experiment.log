@@ -1,0 +1,63 @@
+# Mortality post-resampling probability experiment — 2026-11-07
+
+## Scope and boundary
+
+- Implemented Section 11.3's odds-based prior-probability correction following
+  deterministic 1:1 random undersampling of mortality development training
+  folds. Inputs were only `stage1_outputs/X_train.csv` and
+  `stage1_outputs/y_train.csv`.
+- Five-fold stratified seed-42 CV evaluated probabilities on untouched,
+  natural-prevalence validation folds. Undersampling, Stage 2 preprocessing,
+  and logistic regression fitting occurred only inside each training fold.
+- `y_test.csv`, `X_test.csv`, test IDs, and all other held-out inputs were not
+  read. No prior project outputs or source data were modified.
+
+## Implementation and artifacts
+
+- Added `mi_undersampling_probability_experiment.py` and seven focused
+  synthetic tests in `tests/test_mi_undersampling_probability_experiment.py`.
+- The model is the Stage 2 regularized logistic regression pipeline
+  (`C=1`, `lbfgs`, `max_iter=2000`, no class weights). It preserves its
+  feature-specific imputation, scaling, and ECG one-hot encoding, all fit on
+  each sampled training fold only.
+- Each training fold is randomly undersampled to equal class counts, with
+  seeds `43` through `47`. For each fold, `beta` is the odds of the original
+  training-fold prevalence divided by the odds of the sampled prevalence
+  (0.5). The formula is `p = beta * ps / (beta * ps - ps + 1)`. Validation
+  labels are never used to estimate beta.
+- Outputs are in `undersampling_probability_outputs/`: OOF predictions,
+  fold metrics, pooled summary metrics, quantile reliability bins, a raw vs
+  corrected reliability plot, a short experiment report, and a provenance
+  manifest. The script refuses to overwrite this directory.
+
+## Commands and evidence
+
+- `.venv/bin/python -B -m unittest discover -s tests -p 'test_mi_undersampling_probability_experiment.py' -v`
+  — **7 tests passed**. Tests cover the correction formula and limits,
+  deterministic balanced sampling, invalid prevalence handling, metric/ECE
+  calculation, and output overwrite refusal.
+- The first focused test run detected floating-point representation at the
+  exact probability-one boundary (`0.9999999999999999`). The correction now
+  preserves exact endpoints; the complete focused suite then passed.
+- `PYTHONDONTWRITEBYTECODE=1 MPLCONFIGDIR=/private/tmp .venv/bin/python -B mi_undersampling_probability_experiment.py`
+  — completed all five development folds and wrote the seven declared
+  outputs. Two captured warnings (both fold 5): the training-fold median
+  imputer skipped `KFK_BLOOD`, which had no observed values after sampling.
+  They are retained in `run_manifest.json`; no fold failed or was omitted.
+- Pooled OOF death prevalence was **0.15956** (217/1,360). Raw
+  undersampled-model mean death probability was **0.35411**; after Section
+  11.3 correction it was **0.18409**. Brier score changed from **0.15207**
+  to **0.09428**, log loss from **0.48401** to **0.31212**, and 10-bin
+  quantile ECE from **0.19455** to **0.03886**. AP and AUROC were effectively
+  unchanged (0.61334 and 0.87336), as expected for a monotonic prior shift.
+  Corrected probabilities still overestimated observed prevalence slightly.
+- A first passing run's manifest was completed with the exact command and
+  LogisticRegression parameter fields. The resulting output schemas and
+  seven-file set are recorded in the manifest.
+
+Independent read-only code/output review: **PASS**. The reviewer independently
+checked the exact output set, all 1,360 unique OOF rows and fold assignments,
+recomputed the fold-specific prior corrections and pooled metrics, verified
+bounded probabilities and training-only prevalence use, and confirmed that no
+held-out input was accessed. Question 2 is recorded in the T09 draft; overall
+T09 remains open. No final-model selection was performed.

@@ -1,5 +1,28 @@
 # Independent verification procedure
 
+## T09 Question 2 — 1:1 undersampling probability correction (2026-11-07)
+
+**Independent read-only verdict: PASS.** The reviewer checked the source,
+focused tests, exact output set, and saved evidence without opening the locked
+test partition.
+
+- Confirmed five-fold stratified seed-42 CV on Stage 1 development inputs only;
+  each model and preprocessing pipeline was fit on the training fold after
+  deterministic 1:1 undersampling. Validation folds retained natural prevalence.
+- Confirmed Section 11.3's prior correction uses each natural training-fold
+  prevalence and sampled prevalence (0.5), with no validation-label input.
+- Recomputed fold-specific corrected probabilities and pooled metrics; checked
+  one finite bounded OOF prediction per each of 1,360 eligible development
+  rows, unique row positions, exact seven-output membership, and warnings.
+- Seven focused synthetic tests passed. Two fold-5 median-imputation warnings
+  for `KFK_BLOOD` were preserved in the manifest and run log.
+- Pooled observed prevalence was 0.15956; mean probability changed from
+  0.35411 raw to 0.18409 corrected. Brier changed 0.15207 to 0.09428, log
+  loss 0.48401 to 0.31212, and quantile ECE 0.19455 to 0.03886.
+
+This completes only the Question 2 experiment; it does not complete T09 or
+authorize any further held-out data access.
+
 The verifier works read-only in a fresh session and reports PASS/FAIL with
 commands and evidence. Follow `AGENTS.md` and the applicable task acceptance
 criteria in `TASKS.md`. Do not edit implementation code, outputs, or task status.

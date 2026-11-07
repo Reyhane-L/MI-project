@@ -2,7 +2,7 @@
 
 ## Current stage
 
-T06, T07, and T08 are complete. T08 exported 340 rows with exact header `ID,LET_IS,ZSN,FIBR_PREDS`, reusing validated T07 calibrated probabilities from `non_tabpfn_v1`. Synthetic tests and independent code/output review passed; no test labels were accessed. Current active work: T09 final report. Exact test-row X/y/ID alignment remains a documented limitation because the saved CSVs lack a shared row key.
+T06, T07, and T08 are complete. T08 exported 340 rows with exact header `ID,LET_IS,ZSN,FIBR_PREDS`, reusing validated T07 calibrated probabilities from `non_tabpfn_v1`. Synthetic tests and independent code/output review passed; no test labels were accessed. T09 Question 2 now has a development-only undersampling/prior-correction experiment and independent PASS. Current active work remains the other T09 final-report deliverables. Exact test-row X/y/ID alignment remains a documented limitation because the saved CSVs lack a shared row key.
 
 ## Completed
 
